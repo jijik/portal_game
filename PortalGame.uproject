@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{5BD0ADA1-4DEA-93B5-F26B-9E85AAF4B6F4}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "PortalGame",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
