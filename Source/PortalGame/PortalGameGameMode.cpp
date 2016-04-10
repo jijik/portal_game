@@ -2,7 +2,13 @@
 
 #include "PortalGame.h"
 #include "PortalGameGameMode.h"
+#include "PortalPlayerController.h"
 
+APortalGameGameMode::APortalGameGameMode()
+{
+	AGameMode::DefaultPawnClass = nullptr;
+	AGameMode::PlayerControllerClass = APortalPlayerController::StaticClass();
+}
 
 
 

@@ -5,15 +5,11 @@
 #include "GameFramework/GameMode.h"
 #include "PortalGameGameMode.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class PORTALGAME_API APortalGameGameMode : public AGameMode
 {
 	GENERATED_BODY()
 	
-	
-	
-	
+public:
+	APortalGameGameMode();
 };
