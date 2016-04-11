@@ -18,25 +18,19 @@ void AHexEditorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-// 	if (ExtensionArrowMesh)
-// 	{
-// 		FActorSpawnParameters params;
-// 		
-// 		for (int i = 0; i < 6; ++i)
-// 		{
-// 			FRotator rot(0, 60*i, 0);
-// 			auto* staticMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(FVector(0.0, 0.0, 0.0), rot, params);
-// 			staticMeshActor->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-// 			staticMeshActor->GetStaticMeshComponent()->SetStaticMesh(ExtensionArrowMesh);
-// 			staticMeshActor->GetStaticMeshComponent()->OnClicked.AddDynamic(this, &AHexEditorActor::Click);
-// 		}
-//	}
-	FVector locator(0.0, 0.0, 0.0);
-	FRotator rot(0.0, 0.0, 0.0);
-
 	if (ExtensionArrowActor)
 	{
-		GetWorld()->SpawnActor(ExtensionArrowActor, &locator, &rot);
+		for (int i = 0; i < 6; ++i)
+		{
+			FVector locator(0.0, 0.0, 0.0);
+			FRotator rot(0, 60 * i, 0);
+			auto* arrow = GetWorld()->SpawnActor(ExtensionArrowActor, &locator, &rot);
+			auto* comp = arrow->FindComponentByClass<UStaticMeshComponent>();
+			if (comp)
+			{
+				comp->OnClicked.AddDynamic(this, &AHexEditorActor::Click);
+			}
+		}
 	}
 }
 
@@ -49,5 +43,15 @@ void AHexEditorActor::Tick( float DeltaTime )
 
 void AHexEditorActor::Click(UPrimitiveComponent* ClickedComp)
 {
-	auto test = ClickedComp->IsEditorOnly();
+	static int i = 0;
+	
+	FVector locator(0.0, 0.0, ++i * 3.0);
+	FRotator rot(0, 0, 0);
+	auto* arrow = GetWorld()->SpawnActor(ExtensionArrowActor, &locator, &rot);
+	auto* comp = arrow->FindComponentByClass<UStaticMeshComponent>();
+	if (comp)
+	{
+		comp->OnClicked.AddDynamic(this, &AHexEditorActor::Click);
+	}
+
 }
