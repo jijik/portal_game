@@ -2,6 +2,7 @@
 
 #include "PortalGame.h"
 #include "HexEditorActor.h"
+#include "Engine/StaticMeshActor.h"
 
 
 // Sets default values
@@ -17,18 +18,25 @@ void AHexEditorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (ExtensionArrowMesh)
+// 	if (ExtensionArrowMesh)
+// 	{
+// 		FActorSpawnParameters params;
+// 		
+// 		for (int i = 0; i < 6; ++i)
+// 		{
+// 			FRotator rot(0, 60*i, 0);
+// 			auto* staticMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(FVector(0.0, 0.0, 0.0), rot, params);
+// 			staticMeshActor->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+// 			staticMeshActor->GetStaticMeshComponent()->SetStaticMesh(ExtensionArrowMesh);
+// 			staticMeshActor->GetStaticMeshComponent()->OnClicked.AddDynamic(this, &AHexEditorActor::Click);
+// 		}
+//	}
+	FVector locator(0.0, 0.0, 0.0);
+	FRotator rot(0.0, 0.0, 0.0);
+
+	if (ExtensionArrowActor)
 	{
-		FActorSpawnParameters params;
-		
-		for (int i = 0; i < 6; ++i)
-		{
-			FRotator rot(0, 60*i, 0);
-			auto* staticMeshActor = GetWorld()->SpawnActor<AStaticMeshActor>(FVector(0.0, 0.0, 0.0), rot, params);
-			staticMeshActor->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-			staticMeshActor->GetStaticMeshComponent()->SetStaticMesh(ExtensionArrowMesh);
-			staticMeshActor->GetStaticMeshComponent()->OnClicked.AddDynamic(this, &AHexEditorActor::Click);
-		}
+		GetWorld()->SpawnActor(ExtensionArrowActor, &locator, &rot);
 	}
 }
 

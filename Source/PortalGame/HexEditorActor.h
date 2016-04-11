@@ -21,8 +21,8 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 	UPROPERTY(EditAnywhere)
-	UStaticMesh* ExtensionArrowMesh;
-	
+	UClass* ExtensionArrowActor;
+
 	UFUNCTION()
 	void Click(UPrimitiveComponent* ClickedComp);
 };
