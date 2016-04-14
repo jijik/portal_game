@@ -28,10 +28,6 @@ public:
 	UFUNCTION()
 	void	OnClick(UPrimitiveComponent* ClickedComp);
 
-	void	SetEditorActor(AHexEditorActor& grid);
-
 private:
 	S_HexCoordinates						m_HexCoordinates;
-	AHexEditorActor*						m_HexEditor;
-	
 };

@@ -11,6 +11,8 @@
 AHexEditorActor::AHexEditorActor()
 	:m_RootTileCoordinates(0,0)
 {
+	gHexEditor = this;
+
 	m_Grid.SetTileRadius(100.0);
 	m_SelectedHexComponent = nullptr;
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -22,11 +24,12 @@ void AHexEditorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UHexTileComponent* hexComp = NewObject<UHexTileComponent>(this);
-	hexComp->RegisterComponent();
-	hexComp->SetCoordinates(m_RootTileCoordinates);
-	hexComp->SetEditorActor(*this);
-	GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
+	AHexTileActor::Init(m_RootTileCoordinates);
+
+	//UHexTileComponent* hexComp = NewObject<UHexTileComponent>(this);
+	//hexComp->RegisterComponent();
+	//hexComp->SetCoordinates(m_RootTileCoordinates);
+	//GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
 
 	m_Grid.InsertElement({ 0, 0 }, this);
 
@@ -45,7 +48,6 @@ void AHexEditorActor::BeginPlay()
 		auto* arrowComp = m_Arrows[i]->FindComponentByClass<UExpandArrowComponent>();
 		check(arrowComp);
 		arrowComp->SetRelativeDirection(T_HexGrid::NeighborIndexes[i]);
-		arrowComp->SetEditorActor(*this);
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
 	}
 }
@@ -103,23 +105,25 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 
 	check(m_Grid.GetElement(expandedCoordinated) == nullptr);
 	
-	FVector loc = m_Grid.GetPosition(expandedCoordinated);
-	AStaticMeshActor* tile = GetWorld()->SpawnActor<AStaticMeshActor>(loc, FRotator(0, 0, 0));
-	check(tile);
-	tile->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-	tile->GetStaticMeshComponent()->SetStaticMesh(m_AvailableTiles[0]);
-	
-	UHexTileComponent* hexComp = NewObject<UHexTileComponent>(tile);
-	hexComp->RegisterComponent();
-	hexComp->SetCoordinates(expandedCoordinated);
-	hexComp->SetEditorActor(*this);
+	auto* tile = GetWorld()->SpawnActor<AHexTileActor>();
+	tile->Init(expandedCoordinated);
 
-	tile->GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
+	//FVector loc = m_Grid.GetPosition(expandedCoordinated);
+	//AHexTileActor* tile = GetWorld()->SpawnActor<AHexTileActor>(loc, FRotator(0, 0, 0));
+	//check(tile);
+	//tile->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
+	//tile->GetStaticMeshComponent()->SetStaticMesh(m_AvailableTiles[0]);
+	//
+	//UHexTileComponent* hexComp = NewObject<UHexTileComponent>(tile);
+	//hexComp->RegisterComponent();
+	//hexComp->SetCoordinates(expandedCoordinated);
+	//
+	//tile->GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
 
 	m_Grid.InsertElement(expandedCoordinated, tile);
 
 	DeselectTile();
-	SelectTile(hexComp);
+	SelectTile(tile->FindComponentByClass<UHexTileComponent>());
 }
 
 void AHexEditorActor::DeleteTile()
@@ -141,4 +145,9 @@ void AHexEditorActor::DeleteTile()
 	DeselectTile();
 	GetWorld()->DestroyActor(owner);
 	m_Grid.RemoveElement(coords);
+}
+
+AHexEditorActor::T_HexGrid& AHexEditorActor::GetHexGrid()
+{
+	return m_Grid;
 }

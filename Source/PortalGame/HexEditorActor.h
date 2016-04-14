@@ -10,7 +10,7 @@
 class UHexTileComponent;
 
 UCLASS()
-class PORTALGAME_API AHexEditorActor : public AStaticMeshActor
+class PORTALGAME_API AHexEditorActor : public AHexTileActor
 {
 	GENERATED_BODY()
 	
@@ -37,7 +37,8 @@ public:
 
 	UHexTileComponent*	 m_SelectedHexComponent;
 
-	using T_HexGrid = C_HexGrid<AStaticMeshActor*>;
+	using T_HexGrid = C_HexGrid<AHexTileActor*>;
+	T_HexGrid&	GetHexGrid();
 
 	Array6<AStaticMeshActor*>	m_Arrows;
 

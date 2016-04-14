@@ -5,7 +5,6 @@
 
 UHexTileComponent::UHexTileComponent()
 {
-	m_HexEditor = nullptr;
 	bWantsBeginPlay = true;
 	PrimaryComponentTick.bCanEverTick = true;
 }
@@ -35,13 +34,7 @@ const S_HexCoordinates& UHexTileComponent::GetCoordinates()
 }
 
 //========================================================================
-void UHexTileComponent::SetEditorActor(AHexEditorActor& grid)
-{
-	m_HexEditor = &grid;
-}
-
-//========================================================================
 void UHexTileComponent::OnClick(UPrimitiveComponent* ClickedComp)
 {
-	m_HexEditor->SelectTile(this);
+	gHexEditor->SelectTile(this);
 }

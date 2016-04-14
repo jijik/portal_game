@@ -22,3 +22,4 @@ using Array6 = std::array<T, 6>;
 #define Cont(container) std::begin(container), std::end(container)
 
 //========================================================================
+extern class AHexEditorActor* gHexEditor;

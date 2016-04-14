@@ -20,12 +20,7 @@ void UExpandArrowComponent::TickComponent( float DeltaTime, ELevelTick TickType,
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 }
 
-void UExpandArrowComponent::SetEditorActor(AHexEditorActor& editorActor)
-{
-	m_HexEditor = &editorActor;
-}
-
 void UExpandArrowComponent::OnClick(UPrimitiveComponent* ClickedComp)
 {
-	m_HexEditor->Expand(m_RelativeDirection);
+	gHexEditor->Expand(m_RelativeDirection);
 }

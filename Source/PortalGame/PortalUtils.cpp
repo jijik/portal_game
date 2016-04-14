@@ -2,3 +2,5 @@
 
 #include "PortalGame.h"
 #include "PortalUtils.h"
+
+class AHexEditorActor* gHexEditor = nullptr;

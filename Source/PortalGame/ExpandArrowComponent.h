@@ -20,12 +20,10 @@ public:
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 
 	void		SetRelativeDirection(const S_HexCoordinates& dir) { m_RelativeDirection = dir; }
-	void		SetEditorActor(AHexEditorActor& editorActor);
 
 	UFUNCTION()
 	void OnClick(UPrimitiveComponent* ClickedComp);
 
 private:
 	S_HexCoordinates	m_RelativeDirection;
-	AHexEditorActor*	m_HexEditor;
 };
