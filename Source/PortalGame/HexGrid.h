@@ -27,6 +27,7 @@ public:
 	void		Init();
 	void		InsertElement(const S_HexCoordinates& coordinates, const T& element);
 	T				GetElement(const S_HexCoordinates& coordinates);
+	void		RemoveElement(const S_HexCoordinates& coordinates);
 	void		FillNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill);
 	void		SetTileRadius(float tileRadius);
 	FVector	GetPosition(const S_HexCoordinates& coordinates);
@@ -41,7 +42,12 @@ private:
 //========================================================================
 //========================================================================
 template <typename T>
-const Array6<S_HexCoordinates> C_HexGrid<T>::NeighborIndexes = { { 1,0 },{ 1,-1 },{ 0,-1 },{ 0,-1 },{ -1,0 },{ -1,1 } };
+const Array6<S_HexCoordinates> C_HexGrid<T>::NeighborIndexes = {	S_HexCoordinates(1, 0),
+																																	S_HexCoordinates(1,-1),
+																																	S_HexCoordinates(0,-1),
+																																	S_HexCoordinates(-1,0),
+																																	S_HexCoordinates(-1,1),
+																																	S_HexCoordinates(0, 1) };
 
 //========================================================================
 template <typename T>
@@ -54,7 +60,21 @@ void C_HexGrid<T>::Init()
 template <typename T>
 T C_HexGrid<T>::GetElement(const S_HexCoordinates& coordinates)
 {
-	return m_GridMap[coordinates];
+	auto it = m_GridMap.find(coordinates);
+	if (it == m_GridMap.end())
+	{
+		return nullptr;
+	}
+	return it->second;
+}
+
+//========================================================================
+template <typename T>
+void C_HexGrid<T>::RemoveElement(const S_HexCoordinates& coordinates)
+{
+	auto it = m_GridMap.find(coordinates);
+	check(it != m_GridMap.end());
+	m_GridMap.erase(it);
 }
 
 //========================================================================

@@ -3,6 +3,8 @@
 #pragma once
 
 #include <array>
+#include "Runtime/Slate/Public/Widgets/Notifications/SNotificationList.h"
+#include "Runtime/Slate/Public/Framework/Notifications/NotificationManager.h"
 
 //========================================================================
 template <class T>

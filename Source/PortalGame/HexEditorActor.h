@@ -10,7 +10,7 @@
 class UHexTileComponent;
 
 UCLASS()
-class PORTALGAME_API AHexEditorActor : public AActor
+class PORTALGAME_API AHexEditorActor : public AStaticMeshActor
 {
 	GENERATED_BODY()
 	
@@ -26,9 +26,11 @@ public:
 
 	void					SelectTile(UHexTileComponent* hexTile);
 	void					DeselectTile();
+	void					DeleteTile();
+	void					Expand(const S_HexCoordinates& dir);
 
 	UPROPERTY(EditAnywhere)
-	UClass* ExtensionArrowActor;
+	UClass* ExpansionArrowActor;
 
 	UPROPERTY(EditAnywhere)
 	TArray<UStaticMesh*> m_AvailableTiles;
@@ -38,6 +40,8 @@ public:
 	using T_HexGrid = C_HexGrid<AStaticMeshActor*>;
 
 	Array6<AStaticMeshActor*>	m_Arrows;
+
+	S_HexCoordinates m_RootTileCoordinates;
 
 private:
 	void ShowExpansionArrows();

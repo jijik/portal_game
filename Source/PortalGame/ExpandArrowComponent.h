@@ -2,9 +2,11 @@
 
 #pragma once
 
+#include "HexCoordinates.h"
 #include "Components/ActorComponent.h"
 #include "ExpandArrowComponent.generated.h"
 
+class AHexEditorActor;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class PORTALGAME_API UExpandArrowComponent : public UActorComponent
@@ -12,16 +14,18 @@ class PORTALGAME_API UExpandArrowComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	// Sets default values for this component's properties
 	UExpandArrowComponent();
 
-	// Called when the game starts
 	virtual void BeginPlay() override;
-	
-	// Called every frame
 	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
 
-		
-	UPROPERTY(EditAnywhere)
-	bool DummyProperty;
+	void		SetRelativeDirection(const S_HexCoordinates& dir) { m_RelativeDirection = dir; }
+	void		SetEditorActor(AHexEditorActor& editorActor);
+
+	UFUNCTION()
+	void OnClick(UPrimitiveComponent* ClickedComp);
+
+private:
+	S_HexCoordinates	m_RelativeDirection;
+	AHexEditorActor*	m_HexEditor;
 };
