@@ -19,17 +19,11 @@ AHexEditorActor::AHexEditorActor()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
 void AHexEditorActor::BeginPlay()
 {
 	Super::BeginPlay();
 
 	AHexTileActor::Init(m_RootTileCoordinates);
-
-	//UHexTileComponent* hexComp = NewObject<UHexTileComponent>(this);
-	//hexComp->RegisterComponent();
-	//hexComp->SetCoordinates(m_RootTileCoordinates);
-	//GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
 
 	m_Grid.InsertElement({ 0, 0 }, this);
 
@@ -52,7 +46,6 @@ void AHexEditorActor::BeginPlay()
 	}
 }
 
-// Called every frame
 void AHexEditorActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -107,18 +100,6 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 	
 	auto* tile = GetWorld()->SpawnActor<AHexTileActor>();
 	tile->Init(expandedCoordinated);
-
-	//FVector loc = m_Grid.GetPosition(expandedCoordinated);
-	//AHexTileActor* tile = GetWorld()->SpawnActor<AHexTileActor>(loc, FRotator(0, 0, 0));
-	//check(tile);
-	//tile->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
-	//tile->GetStaticMeshComponent()->SetStaticMesh(m_AvailableTiles[0]);
-	//
-	//UHexTileComponent* hexComp = NewObject<UHexTileComponent>(tile);
-	//hexComp->RegisterComponent();
-	//hexComp->SetCoordinates(expandedCoordinated);
-	//
-	//tile->GetStaticMeshComponent()->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
 
 	m_Grid.InsertElement(expandedCoordinated, tile);
 
