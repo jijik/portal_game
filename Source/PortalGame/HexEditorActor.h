@@ -3,7 +3,11 @@
 #pragma once
 
 #include "GameFramework/Actor.h"
+#include "HexGrid.h"
+#include "HexTileActor.h"
 #include "HexEditorActor.generated.h"
+
+class UHexTileComponent;
 
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AActor
@@ -20,9 +24,25 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+	void					SelectTile(UHexTileComponent* hexTile);
+	void					DeselectTile();
+
 	UPROPERTY(EditAnywhere)
 	UClass* ExtensionArrowActor;
 
-	UFUNCTION()
-	void Click(UPrimitiveComponent* ClickedComp);
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMesh*> m_AvailableTiles;
+
+	UHexTileComponent*	 m_SelectedHexComponent;
+
+	using T_HexGrid = C_HexGrid<AStaticMeshActor*>;
+
+	Array6<AStaticMeshActor*>	m_Arrows;
+
+private:
+	void ShowExpansionArrows();
+
+private:
+	T_HexGrid m_Grid;
+
 };
