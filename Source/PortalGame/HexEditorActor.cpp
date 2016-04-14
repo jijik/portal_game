@@ -31,6 +31,11 @@ void AHexEditorActor::BeginPlay()
 	InputComponent->BindAction("RMB", IE_Released, this, &AHexEditorActor::DeselectTile);
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
 
+	FVector locator(0, 0, 0);
+	m_ArrowsParent = GetWorld()->SpawnActor(AActor::StaticClass());
+
+	m_ArrowsParent->SetRootComponent(NewObject<USceneComponent>(m_ArrowsParent,TEXT("ArrowsParent")));
+
 	for (int i = 0; i < 6; ++i)
 	{
 		FVector locator(0, 0, 0);
@@ -43,6 +48,7 @@ void AHexEditorActor::BeginPlay()
 		check(arrowComp);
 		arrowComp->SetRelativeDirection(T_HexGrid::NeighborIndexes[i]);
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
+		m_Arrows[i]->AttachRootComponentToActor(m_ArrowsParent);
 	}
 }
 

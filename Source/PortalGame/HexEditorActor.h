@@ -40,6 +40,7 @@ public:
 	using T_HexGrid = C_HexGrid<AHexTileActor*>;
 	T_HexGrid&	GetHexGrid();
 
+	AActor*	m_ArrowsParent;
 	Array6<AStaticMeshActor*>	m_Arrows;
 
 	S_HexCoordinates m_RootTileCoordinates;
