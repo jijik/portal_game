@@ -9,7 +9,7 @@ void UExpandArrowComponent::SetRelativeDirection(const S_HexCoordinates& dir)
 	check(dir.z == 0); m_RelativeDirection = dir;
 }
 
-void UExpandArrowComponent::OnClick(UPrimitiveComponent* ClickedComp)
+void UExpandArrowComponent::OnClick(UPrimitiveComponent*)
 {
 	gHexEditor->Expand(m_RelativeDirection);
 }

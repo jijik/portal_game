@@ -7,21 +7,17 @@
 #include "HexTileActor.h"
 #include "HexEditorActor.generated.h"
 
-class UHexTileComponent;
-
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
 {
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AHexEditorActor();
 
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	virtual void	BeginPlay() override;
 	
-	void					SelectTile(UHexTileComponent* hexTile);
+	void					SelectTile(AHexTileActor* hexTile);
 	void					DeselectTile();
 	void					Expand(const S_HexCoordinates& dir);
 
@@ -31,7 +27,7 @@ public:
 	UPROPERTY(EditAnywhere)
 	TArray<UStaticMesh*>	AvailableTiles;
 
-	UHexTileComponent*		m_SelectedHexComponent;
+	AHexTileActor*				m_SelectedHexTile;
 
 	using T_HexGrid =			C_HexGrid<AHexTileActor*>;
 	T_HexGrid&						GetHexGrid();
@@ -48,7 +44,7 @@ public:
 private:
 	void					DeleteTile();
 	void					ExpandUp();
-	void					HandleSelectionMaterial(UHexTileComponent* hexTile);
+	void					HandleSelectionMaterial(AHexTileActor* hexTile);
 	void					CycleModel();
 	void					RotateModel();
 	void					ShowExpansionArrows();

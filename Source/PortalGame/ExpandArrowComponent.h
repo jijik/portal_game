@@ -15,7 +15,7 @@ class PORTALGAME_API UExpandArrowComponent : public UActorComponent
 
 public:	
 	UFUNCTION()
-	void		OnClick(UPrimitiveComponent* ClickedComp);
+	void		OnClick(UPrimitiveComponent* c);
 	
 	void		SetRelativeDirection(const S_HexCoordinates& dir);
 

@@ -4,11 +4,12 @@
 #include "PortalUtils.h"
 #include "HexEditorActor.h"
 #include "HexTileActor.h"
-#include "HexTileComponent.h"
 
 //========================================================================
 void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 {
+	SetCoordinates(coordinates);
+
 	auto pos = gHexEditor->GetHexGrid().GetPosition(coordinates);
 
 	auto* meshComp = GetStaticMeshComponent();
@@ -17,11 +18,7 @@ void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 
 	SetActorLocation(pos);
 
-	UHexTileComponent* hexComp = NewObject<UHexTileComponent>(this);
-	hexComp->RegisterComponent();
-	hexComp->SetCoordinates(coordinates);
-
-	meshComp->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
+	meshComp->OnClicked.AddDynamic(this, &AHexTileActor::OnClick);
 
 	SetSelectedMaterial(false);
 }
@@ -53,4 +50,22 @@ void AHexTileActor::RotateModel()
 	auto rotator = GetActorRotation();
 	rotator.Yaw += 60;
 	SetActorRotation(rotator);
+}
+
+//========================================================================
+void AHexTileActor::OnClick(UPrimitiveComponent*)
+{
+	gHexEditor->SelectTile(this);
+}
+
+//========================================================================
+const S_HexCoordinates& AHexTileActor::GetCoordinates()
+{
+	return m_Coordinates;
+}
+
+//========================================================================
+void AHexTileActor::SetCoordinates(const S_HexCoordinates& c)
+{
+	m_Coordinates = c;
 }
