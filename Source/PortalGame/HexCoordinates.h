@@ -10,26 +10,21 @@ static const	HexCoordinate InvalidHexCoordinate = std::numeric_limits<HexCoordin
 
 struct PORTALGAME_API S_HexCoordinates
 {
-	HexCoordinate s, t;
+	HexCoordinate s, t, z;
 
-	S_HexCoordinates() : S_HexCoordinates(InvalidHexCoordinate, InvalidHexCoordinate) {}
-	S_HexCoordinates(HexCoordinate _x, HexCoordinate _y) : s(_x), t(_y) {}
+	S_HexCoordinates();
+	S_HexCoordinates(HexCoordinate _x, HexCoordinate _y);
+	S_HexCoordinates(HexCoordinate _x, HexCoordinate _y, HexCoordinate _z);
 
-	bool operator==(const S_HexCoordinates& rhs) const
-	{
-		return rhs.s == s && rhs.t == t;
-	}
+	bool operator==(const S_HexCoordinates& rhs) const;
 
-	bool Valid() { return s != InvalidHexCoordinate && t != InvalidHexCoordinate; }
+	bool Valid();
 
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, const S_HexCoordinates&);
 
 };
 
-inline S_HexCoordinates operator+(const S_HexCoordinates& lhs, const S_HexCoordinates& rhs)
-{
-	return S_HexCoordinates{ lhs.s + rhs.s, lhs.t + rhs.t };
-}
+S_HexCoordinates operator+(const S_HexCoordinates& lhs, const S_HexCoordinates& rhs);
 
 namespace std
 {
@@ -41,6 +36,7 @@ namespace std
 			std::size_t hash = 0;
 			hash_combine(hash, rhs.s);
 			hash_combine(hash, rhs.t);
+			hash_combine(hash, rhs.z);
 			return hash;
 		}
 	};

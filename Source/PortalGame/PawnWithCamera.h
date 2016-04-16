@@ -13,33 +13,28 @@ class PORTALGAME_API APawnWithCamera : public APawn
 public:
 	APawnWithCamera();
 
-	virtual void BeginPlay() override;
-
 	virtual void Tick(float DeltaSeconds) override;
-
-	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 protected:
 	UPROPERTY(EditAnywhere)
 	USpringArmComponent* OurCameraSpringArm;
-	UCameraComponent* m_OurCamera;
 
 	UPROPERTY(EditAnywhere)
 	float	MoveSpeed = 5;
 
-	//Input variables
-	FVector2D m_MovementInput;
-	FVector2D m_CameraInput;
-	float m_CameraZoom;
-	bool m_CameraRotate;
-	bool m_CameraZoomToggle;
+	UCameraComponent* m_OurCamera;
 
-	//Input functions
-	void MoveForward(float AxisValue);
-	void MoveRight(float AxisValue);
-	void CameraRotatePressed();
-	void CameraRotateReleased();
-	void CameraZoomPressed();
-	void CameraZoomReleased();
+	FVector2D		m_MovementInput;
+	FVector2D		m_CameraInput;
+	float				m_CameraZoom;
+	bool				m_CameraRotate;
+	bool				m_CameraZoomToggle;
+
+	void				MoveForward(float AxisValue);
+	void				MoveRight(float AxisValue);
+	void				CameraRotatePressed();
+	void				CameraRotateReleased();
+	void				CameraZoomPressed();
+	void				CameraZoomReleased();
 };

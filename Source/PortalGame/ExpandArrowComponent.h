@@ -14,15 +14,10 @@ class PORTALGAME_API UExpandArrowComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	UExpandArrowComponent();
-
-	virtual void BeginPlay() override;
-	virtual void TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction ) override;
-
-	void		SetRelativeDirection(const S_HexCoordinates& dir) { m_RelativeDirection = dir; }
-
 	UFUNCTION()
-	void OnClick(UPrimitiveComponent* ClickedComp);
+	void		OnClick(UPrimitiveComponent* ClickedComp);
+	
+	void		SetRelativeDirection(const S_HexCoordinates& dir);
 
 private:
 	S_HexCoordinates	m_RelativeDirection;

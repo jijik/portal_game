@@ -21,38 +21,39 @@ public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
-	// Called every frame
-	virtual void Tick( float DeltaSeconds ) override;
-
 	void					SelectTile(UHexTileComponent* hexTile);
 	void					DeselectTile();
-	void					DeleteTile();
 	void					Expand(const S_HexCoordinates& dir);
-	void					HandleSelectionMaterial(UHexTileComponent* hexTile);
 
 	UPROPERTY(EditAnywhere)
-	UClass* ExpansionArrowActor;
+	UClass*								ExpansionArrowActor;
 
 	UPROPERTY(EditAnywhere)
-	TArray<UStaticMesh*> m_AvailableTiles;
+	TArray<UStaticMesh*>	AvailableTiles;
 
-	UHexTileComponent*	 m_SelectedHexComponent;
+	UHexTileComponent*		m_SelectedHexComponent;
 
-	using T_HexGrid = C_HexGrid<AHexTileActor*>;
-	T_HexGrid&	GetHexGrid();
+	using T_HexGrid =			C_HexGrid<AHexTileActor*>;
+	T_HexGrid&						GetHexGrid();
 
 	AActor*	m_ArrowsParent;
 	Array6<AStaticMeshActor*>	m_Arrows;
 
-	S_HexCoordinates m_RootTileCoordinates;
+	S_HexCoordinates			m_RootTileCoordinates;
 
-	UMaterial* m_DefaultMaterial;
-	UMaterial* m_SelectedMaterial;
+	UMaterial*						m_DefaultMaterial;
+	UMaterial*						m_SelectedMaterial;
 
-private:
-	void ShowExpansionArrows();
 
 private:
-	T_HexGrid m_Grid;
+	void					DeleteTile();
+	void					ExpandUp();
+	void					HandleSelectionMaterial(UHexTileComponent* hexTile);
+	void					CycleModel();
+	void					RotateModel();
+	void					ShowExpansionArrows();
+
+private:
+	T_HexGrid			m_Grid;
 
 };

@@ -3,14 +3,12 @@
 #include "PortalGame.h"
 #include "PawnWithCamera.h"
 
-// Sets default values
+//========================================================================
 APawnWithCamera::APawnWithCamera()
 	:m_CameraRotate(false)
 {
-	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	//Create our components
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	OurCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpringArm"));
 	OurCameraSpringArm->AttachTo(RootComponent);
@@ -18,21 +16,14 @@ APawnWithCamera::APawnWithCamera()
 	OurCameraSpringArm->TargetArmLength = 400.f;
 	OurCameraSpringArm->bEnableCameraLag = true;
 	OurCameraSpringArm->CameraLagSpeed = 7.0f;
+	OurCameraSpringArm->bDoCollisionTest = false;
 	m_OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
 	m_OurCamera->AttachTo(OurCameraSpringArm, USpringArmComponent::SocketName);
 
-	//Take control of the default Player
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
-// Called when the game starts or when spawned
-void APawnWithCamera::BeginPlay()
-{
-	Super::BeginPlay();
-
-}
-
-// Called every frame
+//========================================================================
 void APawnWithCamera::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -71,7 +62,7 @@ void APawnWithCamera::Tick(float DeltaTime)
 	}
 }
 
-// Called to bind functionality to input
+//========================================================================
 void APawnWithCamera::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
@@ -81,12 +72,11 @@ void APawnWithCamera::SetupPlayerInputComponent(class UInputComponent* InputComp
 	InputComponent->BindAction("CameraZoom", IE_Pressed, this, &APawnWithCamera::CameraZoomPressed);
 	InputComponent->BindAction("CameraZoom", IE_Released, this, &APawnWithCamera::CameraZoomReleased);
 
-	//Hook up every-frame handling for our four axes
 	InputComponent->BindAxis("MoveForward", this, &APawnWithCamera::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APawnWithCamera::MoveRight);
 }
 
-//Input functions
+//========================================================================
 void APawnWithCamera::MoveForward(float AxisValue)
 {
 	m_MovementInput.X = 0;
@@ -107,6 +97,7 @@ void APawnWithCamera::MoveForward(float AxisValue)
 	}
 }
 
+//========================================================================
 void APawnWithCamera::MoveRight(float AxisValue)
 {
 	if (m_CameraRotate)
@@ -121,21 +112,25 @@ void APawnWithCamera::MoveRight(float AxisValue)
 	}
 }
 
+//========================================================================
 void APawnWithCamera::CameraRotatePressed()
 {
 	m_CameraRotate = true;
 }
 
+//========================================================================
 void APawnWithCamera::CameraRotateReleased()
 {
 	m_CameraRotate = false;
 }
 
+//========================================================================
 void APawnWithCamera::CameraZoomPressed()
 {
 	m_CameraZoomToggle = true;
 }
 
+//========================================================================
 void APawnWithCamera::CameraZoomReleased()
 {
 	m_CameraZoomToggle = false;

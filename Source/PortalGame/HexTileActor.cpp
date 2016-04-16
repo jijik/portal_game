@@ -6,18 +6,14 @@
 #include "HexTileActor.h"
 #include "HexTileComponent.h"
 
-AHexTileActor::AHexTileActor()
-{
-	PrimaryActorTick.bCanEverTick = true;
-}
-
+//========================================================================
 void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 {
 	auto pos = gHexEditor->GetHexGrid().GetPosition(coordinates);
 
 	auto* meshComp = GetStaticMeshComponent();
 	meshComp->SetMobility(EComponentMobility::Movable);
-	meshComp->SetStaticMesh(gHexEditor->m_AvailableTiles[0]);
+	meshComp->SetStaticMesh(gHexEditor->AvailableTiles[0]);
 
 	SetActorLocation(pos);
 
@@ -30,16 +26,7 @@ void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 	SetSelectedMaterial(false);
 }
 
-void AHexTileActor::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void AHexTileActor::Tick( float DeltaTime )
-{
-	Super::Tick( DeltaTime );
-}
-
+//========================================================================
 void AHexTileActor::SetSelectedMaterial(bool b)
 {
 	if (b)
@@ -50,4 +37,20 @@ void AHexTileActor::SetSelectedMaterial(bool b)
 	{
 		GetStaticMeshComponent()->SetMaterial(0, gHexEditor->m_DefaultMaterial);
 	}
+}
+
+//========================================================================
+void AHexTileActor::CycleModel()
+{
+	++m_CurrentModelId;
+	m_CurrentModelId %= gHexEditor->AvailableTiles.Num();
+	GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableTiles[m_CurrentModelId]);
+}
+
+//========================================================================
+void AHexTileActor::RotateModel()
+{
+	auto rotator = GetActorRotation();
+	rotator.Yaw += 60;
+	SetActorRotation(rotator);
 }

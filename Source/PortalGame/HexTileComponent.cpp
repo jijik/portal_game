@@ -3,24 +3,6 @@
 #include "PortalGame.h"
 #include "HexTileComponent.h"
 
-UHexTileComponent::UHexTileComponent()
-{
-	bWantsBeginPlay = true;
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-//========================================================================
-void UHexTileComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-//========================================================================
-void UHexTileComponent::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
-{
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
-}
-
 //========================================================================
 void UHexTileComponent::SetCoordinates(const S_HexCoordinates& c)
 {

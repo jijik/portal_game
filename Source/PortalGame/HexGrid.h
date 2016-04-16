@@ -16,19 +16,17 @@
 //  
 //  
 
-
-
 template <typename T>
 class PORTALGAME_API C_HexGrid
 {
 public:
-	static const Array6<S_HexCoordinates> NeighborIndexes;
+	static const Array6<S_HexCoordinates> HorizontalNeighborIndexes;
 
 	void		Init();
 	void		InsertElement(const S_HexCoordinates& coordinates, const T& element);
 	T				GetElement(const S_HexCoordinates& coordinates);
 	void		RemoveElement(const S_HexCoordinates& coordinates);
-	void		FillNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill);
+	void		FillHorizontalNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill);
 	void		SetTileRadius(float tileRadius);
 	FVector	GetPosition(const S_HexCoordinates& coordinates);
 
@@ -42,12 +40,12 @@ private:
 //========================================================================
 //========================================================================
 template <typename T>
-const Array6<S_HexCoordinates> C_HexGrid<T>::NeighborIndexes = {	S_HexCoordinates(1, 0),
-																																	S_HexCoordinates(1,-1),
-																																	S_HexCoordinates(0,-1),
-																																	S_HexCoordinates(-1,0),
-																																	S_HexCoordinates(-1,1),
-																																	S_HexCoordinates(0, 1) };
+const Array6<S_HexCoordinates> C_HexGrid<T>::HorizontalNeighborIndexes = {	S_HexCoordinates(1, 0),
+																																						S_HexCoordinates(1,-1),
+																																						S_HexCoordinates(0,-1),
+																																						S_HexCoordinates(-1,0),
+																																						S_HexCoordinates(-1,1),
+																																						S_HexCoordinates(0, 1) };
 
 //========================================================================
 template <typename T>
@@ -86,11 +84,11 @@ void C_HexGrid<T>::InsertElement(const S_HexCoordinates& coordinates, const T& e
 
 //========================================================================
 template <typename T>
-void C_HexGrid<T>::FillNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill)
+void C_HexGrid<T>::FillHorizontalNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill)
 {
 	for (unsigned i = 0; i < 6; ++i)
 	{
-		toFill[i] = origin + NeighborIndexes[i];
+		toFill[i] = origin + HorizontalNeighborIndexes[i];
 	}
 }
 
@@ -100,7 +98,8 @@ FVector C_HexGrid<T>::GetPosition(const S_HexCoordinates& coordinates)
 {
 	auto x = coordinates.t * 1.5 * -m_TileRadius;
 	auto y = coordinates.s * 2.0 * m_BoundaryDistance + coordinates.t * m_BoundaryDistance;
-	return FVector(x, y, 0.0);
+	auto z = coordinates.z * m_TileRadius;
+	return FVector(x, y, z);
 }
 
 //========================================================================

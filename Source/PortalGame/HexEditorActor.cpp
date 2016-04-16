@@ -6,10 +6,9 @@
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
-
-// Sets default values
+//========================================================================
 AHexEditorActor::AHexEditorActor()
-	:m_RootTileCoordinates(0,0)
+	:m_RootTileCoordinates(0,0,0)
 {
 	gHexEditor = this;
 
@@ -24,6 +23,7 @@ AHexEditorActor::AHexEditorActor()
 	m_SelectedMaterial = Selected.Object;
 }
 
+//========================================================================
 void AHexEditorActor::BeginPlay()
 {
 	Super::BeginPlay();
@@ -35,6 +35,9 @@ void AHexEditorActor::BeginPlay()
 	EnableInput(GetWorld()->GetFirstPlayerController());
 	InputComponent->BindAction("RMB", IE_Released, this, &AHexEditorActor::DeselectTile);
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
+	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
+	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
+	InputComponent->BindAction("ExpandUp", IE_Pressed, this, &AHexEditorActor::ExpandUp);
 
 	FVector locator(0, 0, 0);
 	m_ArrowsParent = GetWorld()->SpawnActor(AActor::StaticClass());
@@ -51,19 +54,13 @@ void AHexEditorActor::BeginPlay()
 		m_Arrows[i]->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
 		auto* arrowComp = m_Arrows[i]->FindComponentByClass<UExpandArrowComponent>();
 		check(arrowComp);
-		arrowComp->SetRelativeDirection(T_HexGrid::NeighborIndexes[i]);
+		arrowComp->SetRelativeDirection(T_HexGrid::HorizontalNeighborIndexes[i]);
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
 		m_Arrows[i]->AttachRootComponentToActor(m_ArrowsParent);
 	}
-
 }
 
-void AHexEditorActor::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
+//========================================================================
 void AHexEditorActor::SelectTile(UHexTileComponent* hexTile)
 {
 	HandleSelectionMaterial(hexTile);
@@ -72,11 +69,13 @@ void AHexEditorActor::SelectTile(UHexTileComponent* hexTile)
 	ShowExpansionArrows();
 }
 
+//========================================================================
 void AHexEditorActor::DeselectTile()
 {
 	SelectTile(nullptr);
 }
 
+//========================================================================
 void AHexEditorActor::HandleSelectionMaterial(UHexTileComponent* hexTile)
 {
 	if (m_SelectedHexComponent)
@@ -89,6 +88,7 @@ void AHexEditorActor::HandleSelectionMaterial(UHexTileComponent* hexTile)
 	}
 }
 
+//========================================================================
 void AHexEditorActor::ShowExpansionArrows()
 {
 	for (auto* arrow : m_Arrows)
@@ -104,7 +104,7 @@ void AHexEditorActor::ShowExpansionArrows()
 	auto& currentTile = m_SelectedHexComponent->GetCoordinates();
 	for (int i = 0; i < 6; ++i)
 	{
-		auto potentialTile = T_HexGrid::NeighborIndexes[i] + currentTile;
+		auto potentialTile = T_HexGrid::HorizontalNeighborIndexes[i] + currentTile;
 
 		if (m_Grid.GetElement(potentialTile) == nullptr)
 		{
@@ -115,9 +115,9 @@ void AHexEditorActor::ShowExpansionArrows()
 	}
 }
 
+//========================================================================
 void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 {
-	check(m_AvailableTiles.Num() != 0);
 	check(m_SelectedHexComponent);
 
 	S_HexCoordinates expandedCoordinated = m_SelectedHexComponent->GetCoordinates() + dir;
@@ -133,6 +133,26 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 	SelectTile(tile->FindComponentByClass<UHexTileComponent>());
 }
 
+//========================================================================
+void AHexEditorActor::ExpandUp()
+{
+	if (m_SelectedHexComponent == nullptr)
+	{
+		return;
+	}
+
+	S_HexCoordinates up(0, 0, 1);
+	S_HexCoordinates expandedCoordinated = m_SelectedHexComponent->GetCoordinates() + up;
+
+	if (m_Grid.GetElement(expandedCoordinated) != nullptr)
+	{
+		return; //full
+	}
+
+	Expand(up);
+}
+
+//========================================================================
 void AHexEditorActor::DeleteTile()
 {
 	if (m_SelectedHexComponent == nullptr)
@@ -154,7 +174,26 @@ void AHexEditorActor::DeleteTile()
 	m_Grid.RemoveElement(coords);
 }
 
+//========================================================================
 AHexEditorActor::T_HexGrid& AHexEditorActor::GetHexGrid()
 {
 	return m_Grid;
+}
+
+//========================================================================
+void AHexEditorActor::CycleModel()
+{
+	if (m_SelectedHexComponent)
+	{
+		CastChecked<AHexTileActor>(m_SelectedHexComponent->GetOwner())->CycleModel();
+	}
+}
+
+//========================================================================
+void AHexEditorActor::RotateModel()
+{
+	if (m_SelectedHexComponent)
+	{
+		CastChecked<AHexTileActor>(m_SelectedHexComponent->GetOwner())->RotateModel();
+	}
 }

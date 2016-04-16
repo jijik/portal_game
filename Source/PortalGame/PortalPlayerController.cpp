@@ -5,10 +5,10 @@
 
 APortalPlayerController::APortalPlayerController()
 {
-	bShowMouseCursor = true;
-	bEnableClickEvents = true;
-	bEnableTouchEvents = true;
-	DefaultMouseCursor = EMouseCursor::Crosshairs;
+	bShowMouseCursor		= true;
+	bEnableClickEvents	= true;
+	bEnableTouchEvents	= true;
+	DefaultMouseCursor	= EMouseCursor::Crosshairs;
 }
 
 

@@ -4,20 +4,9 @@
 #include "HexEditorActor.h"
 #include "ExpandArrowComponent.h"
 
-UExpandArrowComponent::UExpandArrowComponent()
+void UExpandArrowComponent::SetRelativeDirection(const S_HexCoordinates& dir)
 {
-	bWantsBeginPlay = true;
-	PrimaryComponentTick.bCanEverTick = true;
-}
-
-void UExpandArrowComponent::BeginPlay()
-{
-	Super::BeginPlay();
-}
-
-void UExpandArrowComponent::TickComponent( float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction )
-{
-	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
+	check(dir.z == 0); m_RelativeDirection = dir;
 }
 
 void UExpandArrowComponent::OnClick(UPrimitiveComponent* ClickedComp)

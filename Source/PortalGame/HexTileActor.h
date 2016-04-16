@@ -11,17 +11,11 @@ class PORTALGAME_API AHexTileActor : public AStaticMeshActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
-	AHexTileActor();
+	void			Init(const struct S_HexCoordinates& coordinates);
+	void			SetSelectedMaterial(bool);
+	void			CycleModel();
+	void			RotateModel();
 
-	void	Init(const struct S_HexCoordinates& coordinates);
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	
-	// Called every frame
-	virtual void Tick( float DeltaSeconds ) override;
-
-	
-	void SetSelectedMaterial(bool);
+private:
+	unsigned	m_CurrentModelId = 0;
 };
