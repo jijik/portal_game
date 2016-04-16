@@ -15,8 +15,13 @@ AHexEditorActor::AHexEditorActor()
 
 	m_Grid.SetTileRadius(100.0);
 	m_SelectedHexComponent = nullptr;
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	static ConstructorHelpers::FObjectFinder<UMaterial> DefaultMat(TEXT("Material'/Game/Materials/Default.Default'"));
+	static ConstructorHelpers::FObjectFinder<UMaterial> Selected(TEXT("Material'/Game/Materials/Default2.Default2'"));
+
+	m_DefaultMaterial = DefaultMat.Object;
+	m_SelectedMaterial = Selected.Object;
 }
 
 void AHexEditorActor::BeginPlay()
@@ -50,6 +55,7 @@ void AHexEditorActor::BeginPlay()
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
 		m_Arrows[i]->AttachRootComponentToActor(m_ArrowsParent);
 	}
+
 }
 
 void AHexEditorActor::Tick(float DeltaTime)
@@ -60,6 +66,8 @@ void AHexEditorActor::Tick(float DeltaTime)
 
 void AHexEditorActor::SelectTile(UHexTileComponent* hexTile)
 {
+	HandleSelectionMaterial(hexTile);
+
 	m_SelectedHexComponent = hexTile;
 	ShowExpansionArrows();
 }
@@ -67,6 +75,18 @@ void AHexEditorActor::SelectTile(UHexTileComponent* hexTile)
 void AHexEditorActor::DeselectTile()
 {
 	SelectTile(nullptr);
+}
+
+void AHexEditorActor::HandleSelectionMaterial(UHexTileComponent* hexTile)
+{
+	if (m_SelectedHexComponent)
+	{
+		CastChecked<AHexTileActor>(m_SelectedHexComponent->GetOwner())->SetSelectedMaterial(false);
+	}
+	if (hexTile)
+	{
+		CastChecked<AHexTileActor>(hexTile->GetOwner())->SetSelectedMaterial(true);
+	}
 }
 
 void AHexEditorActor::ShowExpansionArrows()

@@ -23,5 +23,5 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 	
-	
+	void SetSelectedMaterial(bool);
 };

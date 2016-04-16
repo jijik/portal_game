@@ -28,6 +28,7 @@ public:
 	void					DeselectTile();
 	void					DeleteTile();
 	void					Expand(const S_HexCoordinates& dir);
+	void					HandleSelectionMaterial(UHexTileComponent* hexTile);
 
 	UPROPERTY(EditAnywhere)
 	UClass* ExpansionArrowActor;
@@ -44,6 +45,9 @@ public:
 	Array6<AStaticMeshActor*>	m_Arrows;
 
 	S_HexCoordinates m_RootTileCoordinates;
+
+	UMaterial* m_DefaultMaterial;
+	UMaterial* m_SelectedMaterial;
 
 private:
 	void ShowExpansionArrows();

@@ -26,6 +26,8 @@ void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 	hexComp->SetCoordinates(coordinates);
 
 	meshComp->OnClicked.AddDynamic(hexComp, &UHexTileComponent::OnClick);
+
+	SetSelectedMaterial(false);
 }
 
 void AHexTileActor::BeginPlay()
@@ -38,3 +40,14 @@ void AHexTileActor::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );
 }
 
+void AHexTileActor::SetSelectedMaterial(bool b)
+{
+	if (b)
+	{
+		GetStaticMeshComponent()->SetMaterial(0, gHexEditor->m_SelectedMaterial);
+	}
+	else
+	{
+		GetStaticMeshComponent()->SetMaterial(0, gHexEditor->m_DefaultMaterial);
+	}
+}
