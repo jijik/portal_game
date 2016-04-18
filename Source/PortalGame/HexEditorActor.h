@@ -36,9 +36,10 @@ public:
 	Array6<AStaticMeshActor*>	m_Arrows;
 
 	S_HexCoordinates			m_RootTileCoordinates;
-
 	UMaterial*						m_DefaultMaterial;
 	UMaterial*						m_SelectedMaterial;
+	float									m_TimeWhenRotateBegin;
+	bool									m_SuppressCursor = false;
 
 
 private:
@@ -51,5 +52,4 @@ private:
 
 private:
 	T_HexGrid			m_Grid;
-
 };

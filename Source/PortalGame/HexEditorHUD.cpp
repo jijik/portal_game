@@ -2,6 +2,8 @@
 
 #include "PortalGame.h"
 #include "HexEditorHUD.h"
+#include "HexEditorActor.h"
+#include "PortalUtils.h"
 
 //========================================================================
 AHexEditorHUD::AHexEditorHUD()
@@ -19,9 +21,7 @@ void AHexEditorHUD::DrawHUD()
 	float x, y;
 	bool valid = playerController->GetMousePosition(x,y);
 
-	UE_LOG(LogTemp, Warning, TEXT("%f %f"), x, y);
-
-	if (valid)
+	if (valid && !gHexEditor->m_SuppressCursor)
 	{
 		DrawMaterialSimple(m_CursorMat, x, y, 32, 32);
 	}

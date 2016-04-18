@@ -2,6 +2,8 @@
 
 #include "PortalGame.h"
 #include "PawnWithCamera.h"
+#include "PortalUtils.h"
+#include "HexEditorActor.h"
 
 //========================================================================
 APawnWithCamera::APawnWithCamera()
@@ -17,13 +19,23 @@ APawnWithCamera::APawnWithCamera()
 	OurCameraSpringArm->bEnableCameraLag = true;
 	OurCameraSpringArm->CameraLagSpeed = 7.0f;
 	OurCameraSpringArm->bDoCollisionTest = false;
-	m_OurCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
-	m_OurCamera->AttachTo(OurCameraSpringArm, USpringArmComponent::SocketName);
+	
+	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
+	Camera->AttachTo(OurCameraSpringArm, USpringArmComponent::SocketName);
+
+	Light = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("Headlight"));
+	Light->AttachTo(Camera);
 
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
-#include <sstream>
+//========================================================================
+void APawnWithCamera::BeginPlay()
+{
+	Light->CastShadows = false;
+	Light->Intensity = PI;
+}
+
 //========================================================================
 void APawnWithCamera::Tick(float DeltaTime)
 {
@@ -56,11 +68,12 @@ void APawnWithCamera::Tick(float DeltaTime)
 		}
 	}
 
-	//Handle zoom
-	{
-		auto& armLength = OurCameraSpringArm->TargetArmLength;
-		armLength = FMath::Clamp(armLength + m_CameraZoom, 150.0f, 2000.0f);
-	}
+// 	Handle zoom
+ 		{
+ 			auto& armLength = OurCameraSpringArm->TargetArmLength;
+ 			armLength = FMath::Clamp(armLength + m_CameraZoom, 150.0f, 2000.0f);
+			m_CameraZoom = 0;
+ 		}
 }
 
 //========================================================================
@@ -70,13 +83,12 @@ void APawnWithCamera::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 	InputComponent->BindAction("CameraRotate", IE_Pressed, this, &APawnWithCamera::CameraRotatePressed);
 	InputComponent->BindAction("CameraRotate", IE_Released, this, &APawnWithCamera::CameraRotateReleased);
-	InputComponent->BindAction("CameraZoom", IE_Pressed, this, &APawnWithCamera::CameraZoomPressed);
-	InputComponent->BindAction("CameraZoom", IE_Released, this, &APawnWithCamera::CameraZoomReleased);
 
 	InputComponent->BindAxis("MoveForward", this, &APawnWithCamera::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APawnWithCamera::MoveRight);
 	InputComponent->BindAxis("CamYaw", this, &APawnWithCamera::CameraYaw);
 	InputComponent->BindAxis("CamPitch", this, &APawnWithCamera::CameraPitch);
+	InputComponent->BindAxis("CamZoom", this, &APawnWithCamera::CameraZoom);
 }
 
 //========================================================================
@@ -95,40 +107,38 @@ void APawnWithCamera::MoveRight(float AxisValue)
 void APawnWithCamera::CameraRotatePressed()
 {
 	m_CameraRotate = true;
+	gHexEditor->m_SuppressCursor = true;
 }
 
 //========================================================================
 void APawnWithCamera::CameraRotateReleased()
 {
 	m_CameraRotate = false;
+	gHexEditor->m_SuppressCursor = false;
 }
 
 //========================================================================
-void APawnWithCamera::CameraZoomPressed()
-{
-	m_CameraZoomToggle = true;
-}
-
-//========================================================================
-void APawnWithCamera::CameraZoomReleased()
-{
-	m_CameraZoomToggle = false;
-}
-
 void APawnWithCamera::CameraYaw(float AxisValue)
 {
 	m_CameraInput.X = 0;
 	if (m_CameraRotate)
 	{
-		m_CameraInput.X = FMath::Clamp(-AxisValue, -1.0f, 1.0f);
+		m_CameraInput.X = FMath::Clamp(AxisValue, -1.0f, 1.0f);
 	}
 }
 
+//========================================================================
 void APawnWithCamera::CameraPitch(float AxisValue)
 {
 	m_CameraInput.Y = 0;
 	if (m_CameraRotate)
 	{
-		m_CameraInput.Y = FMath::Clamp(-AxisValue, -1.0f, 1.0f);
+		m_CameraInput.Y = FMath::Clamp(AxisValue, -1.0f, 1.0f);
 	}
+}
+
+//========================================================================
+void APawnWithCamera::CameraZoom(float AxisValue)
+{
+	m_CameraZoom = -AxisValue * 20;
 }
