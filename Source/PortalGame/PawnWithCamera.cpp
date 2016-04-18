@@ -32,6 +32,8 @@ APawnWithCamera::APawnWithCamera()
 //========================================================================
 void APawnWithCamera::BeginPlay()
 {
+	Super::BeginPlay();
+
 	Light->CastShadows = false;
 	Light->Intensity = PI;
 }
