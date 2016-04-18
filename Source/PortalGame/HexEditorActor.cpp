@@ -32,7 +32,7 @@ void AHexEditorActor::BeginPlay()
 	m_Grid.InsertElement({ 0, 0 }, this);
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindAction("RMB", IE_Released, this, &AHexEditorActor::DeselectTile);
+	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::DeselectTile);
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
 	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
@@ -185,7 +185,7 @@ void AHexEditorActor::CycleModel()
 {
 	if (m_SelectedHexTile)
 	{
-		CastChecked<AHexTileActor>(m_SelectedHexTile->GetOwner())->CycleModel();
+		m_SelectedHexTile->CycleModel();
 	}
 }
 
@@ -194,6 +194,6 @@ void AHexEditorActor::RotateModel()
 {
 	if (m_SelectedHexTile)
 	{
-		CastChecked<AHexTileActor>(m_SelectedHexTile->GetOwner())->RotateModel();
+		m_SelectedHexTile->RotateModel();
 	}
 }

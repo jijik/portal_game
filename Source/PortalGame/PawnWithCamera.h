@@ -37,4 +37,6 @@ protected:
 	void				CameraRotateReleased();
 	void				CameraZoomPressed();
 	void				CameraZoomReleased();
+	void				CameraYaw(float AxisValue);
+	void				CameraPitch(float AxisValue);
 };

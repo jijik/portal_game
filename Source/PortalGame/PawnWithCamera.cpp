@@ -23,6 +23,7 @@ APawnWithCamera::APawnWithCamera()
 	AutoPossessPlayer = EAutoReceiveInput::Player0;
 }
 
+#include <sstream>
 //========================================================================
 void APawnWithCamera::Tick(float DeltaTime)
 {
@@ -31,14 +32,14 @@ void APawnWithCamera::Tick(float DeltaTime)
 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
 	{
 		FRotator NewRotation = GetActorRotation();
-		NewRotation.Yaw += m_CameraInput.X;
+		NewRotation.Yaw += m_CameraInput.X * MoveSpeed;
 		SetActorRotation(NewRotation);
 	}
 
 	//Rotate our camera's pitch, but limit it so we're always looking downward
 	{
 		FRotator NewRotation = OurCameraSpringArm->GetComponentRotation();
-		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch + m_CameraInput.Y, -80.0f, -15.0f);
+		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch + m_CameraInput.Y * MoveSpeed, -80.0f, -15.0f);
 		OurCameraSpringArm->SetWorldRotation(NewRotation);
 	}
 
@@ -74,42 +75,20 @@ void APawnWithCamera::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 	InputComponent->BindAxis("MoveForward", this, &APawnWithCamera::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APawnWithCamera::MoveRight);
+	InputComponent->BindAxis("CamYaw", this, &APawnWithCamera::CameraYaw);
+	InputComponent->BindAxis("CamPitch", this, &APawnWithCamera::CameraPitch);
 }
 
 //========================================================================
 void APawnWithCamera::MoveForward(float AxisValue)
 {
-	m_MovementInput.X = 0;
-	m_CameraInput.Y = 0;
-	m_CameraZoom = 0;
-
-	if (m_CameraRotate)
-	{
-		m_CameraInput.Y = -AxisValue;
-	}
-	else if (m_CameraZoomToggle)
-	{
-		m_CameraZoom = 5 * -AxisValue;
-	}
-	else
-	{
-		m_MovementInput.X = FMath::Clamp(AxisValue, -1.0f, 1.0f);
-	}
+	m_MovementInput.X = FMath::Clamp(AxisValue, -1.0f, 1.0f);
 }
 
 //========================================================================
 void APawnWithCamera::MoveRight(float AxisValue)
 {
-	if (m_CameraRotate)
-	{
-		m_CameraInput.X = AxisValue;
-		m_MovementInput.Y = 0;
-	}
-	else
-	{
-		m_CameraInput.X = 0;
-		m_MovementInput.Y = FMath::Clamp(AxisValue, -1.0f, 1.0f);
-	}
+	m_MovementInput.Y = FMath::Clamp(AxisValue, -1.0f, 1.0f);
 }
 
 //========================================================================
@@ -134,4 +113,22 @@ void APawnWithCamera::CameraZoomPressed()
 void APawnWithCamera::CameraZoomReleased()
 {
 	m_CameraZoomToggle = false;
+}
+
+void APawnWithCamera::CameraYaw(float AxisValue)
+{
+	m_CameraInput.X = 0;
+	if (m_CameraRotate)
+	{
+		m_CameraInput.X = FMath::Clamp(-AxisValue, -1.0f, 1.0f);
+	}
+}
+
+void APawnWithCamera::CameraPitch(float AxisValue)
+{
+	m_CameraInput.Y = 0;
+	if (m_CameraRotate)
+	{
+		m_CameraInput.Y = FMath::Clamp(-AxisValue, -1.0f, 1.0f);
+	}
 }
