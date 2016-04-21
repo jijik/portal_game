@@ -5,8 +5,10 @@
 #include "PortalUtils.h"
 
 using HexCoordinate = int;
+using HexDir = unsigned;
 
 static const	HexCoordinate InvalidHexCoordinate = std::numeric_limits<HexCoordinate>::max();
+static const	HexDir InvalidHexDir = 7u;
 
 struct PORTALGAME_API S_HexCoordinates
 {
@@ -18,13 +20,16 @@ struct PORTALGAME_API S_HexCoordinates
 
 	bool operator==(const S_HexCoordinates& rhs) const;
 
-	bool Valid();
+	bool		Valid();
+	HexDir	ToHexDir() const;
 
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, const S_HexCoordinates&);
+	friend S_HexCoordinates operator+(const S_HexCoordinates&, HexDir);
 
 };
 
 S_HexCoordinates operator+(const S_HexCoordinates& lhs, const S_HexCoordinates& rhs);
+S_HexCoordinates operator+(const S_HexCoordinates& lhs, HexDir dir);
 
 namespace std
 {

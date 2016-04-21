@@ -25,13 +25,14 @@ public:
 	const S_HexCoordinates& GetCoordinates();
 	void										SetCoordinates(const S_HexCoordinates&);
 
-	void			PlaceBarrierAt(ABarrierActor& b, unsigned id);
-	void			RemoveBarrierAt(unsigned id);
-	bool			HasBarrierAt(unsigned id);
+	void						PlaceBarrierAt(ABarrierActor& b, HexDir id);
+	void						RemoveBarrierAt(HexDir id);
+	bool						HasBarrierAt(HexDir id);
+	ABarrierActor*	GetBarrierAt(HexDir id);
 
 private:
 	S_HexCoordinates				m_Coordinates;
-	unsigned								m_CurrentModelId = 0;
+	HexDir									m_CurrentModelId = 0;
 
 	Array6<ABarrierActor*>	m_NeighborBarriers;
 };

@@ -23,5 +23,3 @@ using Array6 = std::array<T, 6>;
 
 //========================================================================
 extern class AHexEditorActor* gHexEditor;
-
-static const unsigned s_InvalidSector = 7;

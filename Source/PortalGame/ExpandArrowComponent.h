@@ -17,8 +17,8 @@ public:
 	UFUNCTION()
 	void		OnClick(UPrimitiveComponent* c);
 	
-	void		SetRelativeDirection(const S_HexCoordinates& dir);
+	void		SetRelativeDirection(HexDir dir);
 
 private:
-	S_HexCoordinates	m_RelativeDirection;
+	HexDir						m_RelativeDirection;
 };

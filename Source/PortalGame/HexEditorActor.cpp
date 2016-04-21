@@ -55,7 +55,7 @@ void AHexEditorActor::BeginPlay()
 		m_Arrows[i]->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
 		auto* arrowComp = m_Arrows[i]->FindComponentByClass<UExpandArrowComponent>();
 		check(arrowComp);
-		arrowComp->SetRelativeDirection(T_HexGrid::HorizontalNeighborIndexes[i]);
+		arrowComp->SetRelativeDirection(i);
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
 		m_Arrows[i]->AttachRootComponentToActor(m_ArrowsParent);
 	}
@@ -150,6 +150,14 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 
 	m_Grid.InsertElement(expandedCoordinated, tile);
 
+	auto hexDir = dir.ToHexDir();
+	auto* barrier = m_SelectedHexTile->GetBarrierAt(hexDir);
+	if (barrier)
+	{
+		tile->PlaceBarrierAt(*barrier, T_HexGrid::GetComplementaryNeighborIndex(hexDir));
+		barrier->Place(*m_SelectedHexTile, tile);
+	}
+
 	DeselectTile();
 	SelectTile(tile);
 }
@@ -192,6 +200,20 @@ void AHexEditorActor::DeleteTile()
 	}
 
 	auto* toDestroy = m_SelectedHexTile;
+
+	for (HexDir i = 0; i < 6; ++i)
+	{
+		auto* barrier = m_SelectedHexTile->GetBarrierAt(i);
+		if (barrier)
+		{
+			auto orphan = barrier->UnlinkTile(*m_SelectedHexTile);
+			if (orphan)
+			{
+				GetWorld()->DestroyActor(barrier);
+			}
+		}
+	}
+
 	DeselectTile();
 	GetWorld()->DestroyActor(toDestroy);
 	m_Grid.RemoveElement(coords);

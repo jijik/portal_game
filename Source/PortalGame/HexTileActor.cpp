@@ -72,23 +72,33 @@ void AHexTileActor::SetCoordinates(const S_HexCoordinates& c)
 }
 
 //========================================================================
-void AHexTileActor::PlaceBarrierAt(ABarrierActor& b, unsigned id)
+void AHexTileActor::PlaceBarrierAt(ABarrierActor& b, HexDir id)
 {
 	check(!HasBarrierAt(id));
 	m_NeighborBarriers[id] = &b;
 }
 
 //========================================================================
-void AHexTileActor::RemoveBarrierAt(unsigned id)
+void AHexTileActor::RemoveBarrierAt(HexDir id)
 {
 	check(HasBarrierAt(id));
 	m_NeighborBarriers[id] = nullptr;
 }
 
 //========================================================================
-bool AHexTileActor::HasBarrierAt(unsigned id)
+bool AHexTileActor::HasBarrierAt(HexDir id)
 {
 	return m_NeighborBarriers[id] != nullptr;
+}
+
+//========================================================================
+ABarrierActor* AHexTileActor::GetBarrierAt(HexDir id)
+{
+	if (id == InvalidHexDir)
+	{
+		return nullptr;
+	}
+	return m_NeighborBarriers[id];
 }
 
 //========================================================================

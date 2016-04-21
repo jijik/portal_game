@@ -4,12 +4,13 @@
 #include "HexEditorActor.h"
 #include "ExpandArrowComponent.h"
 
-void UExpandArrowComponent::SetRelativeDirection(const S_HexCoordinates& dir)
+void UExpandArrowComponent::SetRelativeDirection(HexDir dir)
 {
-	check(dir.z == 0); m_RelativeDirection = dir;
+	m_RelativeDirection = dir;
 }
 
 void UExpandArrowComponent::OnClick(UPrimitiveComponent*)
 {
-	gHexEditor->Expand(m_RelativeDirection);
+	auto& dir = gHexEditor->GetHexGrid().HorizontalNeighborIndexes[m_RelativeDirection];
+	gHexEditor->Expand(dir);
 }

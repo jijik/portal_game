@@ -5,6 +5,7 @@
 #include <utility>
 
 #include "PortalUtils.h"
+#include "HexCoordinates.h"
 #include "GameFramework/Actor.h"
 #include "BarrierActor.generated.h"
 
@@ -25,17 +26,18 @@ public:
 
 	void						CycleModel();
 	
-	void						SetOwningTileBeforePlace(AHexTileActor*, unsigned sector = s_InvalidSector);
+	void						SetOwningTileBeforePlace(AHexTileActor*, HexDir sector = InvalidHexDir);
 	bool						IsReadyToPlace();
 
 	AHexTileActor*	GetOwningTileBeforePlace();
 	unsigned				GetOwningSectorBeforePlace();
 
 	void						Place(AHexTileActor& front, AHexTileActor* back);
+	bool						UnlinkTile(AHexTileActor& tile); // returns if left orphan
 
 private:
 	unsigned																	m_CurrentModelId = 0;
-	std::pair<AHexTileActor*, AHexTileActor*> m_Neighbors;
+	std::pair<AHexTileActor*, AHexTileActor*> m_Neighbors; //first is always valid
 	AHexTileActor*														m_OwningTileBeforePlace = nullptr;
-	unsigned																	m_OwningSectorBeforePlace = s_InvalidSector;
+	HexDir																		m_OwningSectorBeforePlace = InvalidHexDir;
 };

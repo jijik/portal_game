@@ -40,7 +40,7 @@ void ABarrierActor::CycleModel()
 }
 
 //========================================================================
-void ABarrierActor::SetOwningTileBeforePlace(AHexTileActor* a, unsigned sector)
+void ABarrierActor::SetOwningTileBeforePlace(AHexTileActor* a, HexDir sector)
 {
 	m_OwningTileBeforePlace = a;
 	m_OwningSectorBeforePlace = sector;
@@ -72,3 +72,24 @@ void ABarrierActor::Place(AHexTileActor& front, AHexTileActor* back)
 }
 
 //========================================================================
+bool ABarrierActor::UnlinkTile(AHexTileActor& tile)
+{
+	if (m_Neighbors.second == &tile)
+	{
+		m_Neighbors.second = nullptr;
+	}
+	else if (m_Neighbors.first == &tile)
+	{
+		m_Neighbors.first = m_Neighbors.second; //first is always valid
+		m_Neighbors.second = nullptr;
+	}
+	else
+	{
+		check(false);
+	}
+
+	return m_Neighbors.first == nullptr;
+}
+
+//========================================================================
+
