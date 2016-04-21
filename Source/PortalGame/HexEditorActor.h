@@ -16,7 +16,9 @@ public:
 	AHexEditorActor();
 
 	virtual void	BeginPlay() override;
-	
+	virtual void	Tick(float DeltaTime) override;
+
+	void					ClickOnTile(AHexTileActor& hexTile);
 	void					SelectTile(AHexTileActor* hexTile);
 	void					DeselectTile();
 	void					Expand(const S_HexCoordinates& dir);
@@ -26,6 +28,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TArray<UStaticMesh*>	AvailableTiles;
+
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMesh*>	AvailableBarriers;
 
 	AHexTileActor*				m_SelectedHexTile;
 
@@ -41,6 +46,7 @@ public:
 	float									m_TimeWhenRotateBegin;
 	bool									m_SuppressCursor = false;
 
+	class ABarrierActor*	m_CurrentBarrier = nullptr;
 
 private:
 	void					DeleteTile();
@@ -49,7 +55,20 @@ private:
 	void					CycleModel();
 	void					RotateModel();
 	void					ShowExpansionArrows();
+	void					ChangeInputMode();
+
+	void					UpdateBarriers();
+	unsigned			GetNeighborId(const FVector& fromCenter);
 
 private:
-	T_HexGrid			m_Grid;
+
+	enum InputMode
+	{
+		Expanding = 0,
+		Barriers,
+		TOTAL
+	};
+
+	InputMode					m_InputType = InputMode::Expanding;
+	T_HexGrid					m_Grid;
 };

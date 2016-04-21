@@ -29,6 +29,7 @@ public:
 	void		FillHorizontalNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill);
 	void		SetTileRadius(float tileRadius);
 	FVector	GetPosition(const S_HexCoordinates& coordinates);
+	FVector	GetPositionBetweenTiles(const S_HexCoordinates& c1, const S_HexCoordinates& c2);
 
 private:
 	std::unordered_map<S_HexCoordinates, T>		m_GridMap;
@@ -100,6 +101,15 @@ FVector C_HexGrid<T>::GetPosition(const S_HexCoordinates& coordinates)
 	auto y = coordinates.s * 2.0 * m_BoundaryDistance + coordinates.t * m_BoundaryDistance;
 	auto z = coordinates.z * m_TileRadius;
 	return FVector(x, y, z);
+}
+
+//========================================================================
+template <typename T>
+FVector C_HexGrid<T>::GetPositionBetweenTiles(const S_HexCoordinates& c1, const S_HexCoordinates& c2)
+{
+	auto p1 = GetPosition(c1);
+	auto p2 = GetPosition(c2);
+	return p1 + 0.5 * (p2 - p1);
 }
 
 //========================================================================

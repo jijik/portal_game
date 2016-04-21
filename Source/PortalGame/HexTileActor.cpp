@@ -55,7 +55,7 @@ void AHexTileActor::RotateModel()
 //========================================================================
 void AHexTileActor::OnClick(UPrimitiveComponent*)
 {
-	gHexEditor->SelectTile(this);
+	gHexEditor->ClickOnTile(*this);
 }
 
 //========================================================================

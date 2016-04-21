@@ -2,6 +2,7 @@
 
 #include "PortalGame.h"
 #include "HexEditorActor.h"
+#include "BarrierActor.h"
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -37,6 +38,7 @@ void AHexEditorActor::BeginPlay()
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
 	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
 	InputComponent->BindAction("ExpandUp", IE_Pressed, this, &AHexEditorActor::ExpandUp);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::ChangeInputMode);
 
 	FVector locator(0, 0, 0);
 	m_ArrowsParent = GetWorld()->SpawnActor(AActor::StaticClass());
@@ -57,6 +59,18 @@ void AHexEditorActor::BeginPlay()
 		m_Arrows[i]->GetStaticMeshComponent()->OnClicked.AddDynamic(arrowComp, &UExpandArrowComponent::OnClick);
 		m_Arrows[i]->AttachRootComponentToActor(m_ArrowsParent);
 	}
+}
+
+//========================================================================
+void AHexEditorActor::Tick(float DeltaTime)
+{
+	UpdateBarriers();
+}
+
+//========================================================================
+void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
+{
+	SelectTile(&hexTile);
 }
 
 //========================================================================
@@ -196,4 +210,68 @@ void AHexEditorActor::RotateModel()
 	{
 		m_SelectedHexTile->RotateModel();
 	}
+}
+
+//========================================================================
+void AHexEditorActor::ChangeInputMode()
+{
+	DeselectTile();
+
+	if (m_InputType == InputMode::Expanding)
+	{
+		m_InputType = InputMode::Barriers;
+
+		check(m_CurrentBarrier == nullptr);
+		m_CurrentBarrier = GetWorld()->SpawnActor<ABarrierActor>();
+		m_CurrentBarrier->Init();
+	}
+	else if (m_InputType == InputMode::Barriers)
+	{
+		m_InputType = InputMode::Expanding;
+
+		check(m_CurrentBarrier);
+		GetWorld()->DestroyActor(m_CurrentBarrier);
+	}
+}
+
+//========================================================================
+void AHexEditorActor::UpdateBarriers()
+{
+	if (m_CurrentBarrier)
+	{
+		check(m_InputType == InputMode::Barriers);
+		
+		auto* pc = GetWorld()->GetFirstPlayerController();
+		FHitResult TraceResult(ForceInit);
+		pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_WorldStatic), false, TraceResult);
+		auto* actor = TraceResult.GetActor();
+		auto* hexActor = Cast<AHexTileActor>(actor);
+		if (hexActor)
+		{
+			auto& coords = hexActor->GetCoordinates();
+			auto tilePos = m_Grid.GetPosition(coords);
+			auto toHit = TraceResult.ImpactPoint - tilePos;
+			auto nId = GetNeighborId(toHit);
+			auto neighborRelativeCoordinates = T_HexGrid::HorizontalNeighborIndexes[nId];
+
+			auto pos = m_Grid.GetPositionBetweenTiles(coords, coords + neighborRelativeCoordinates);
+			m_CurrentBarrier->SetActorLocation(pos);
+			m_CurrentBarrier->SetActorRotation(FRotator(0, 60 * -(int)nId, 0));
+		}
+	}
+}
+
+//========================================================================
+unsigned AHexEditorActor::GetNeighborId(const FVector& fromCenter)
+{
+	// compensate axis switch etc, nasty piece of code... redo
+	auto rad = atan2(fromCenter.Y, fromCenter.X);
+	auto deg = FMath::RadiansToDegrees(rad);
+	unsigned segment;
+	if (deg < 0) deg = 360.0 + deg;
+	deg = 360 - deg;
+	segment = (unsigned)deg / 60;
+	segment += 2;
+	segment %= 6;
+	return segment;
 }
