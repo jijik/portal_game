@@ -2,6 +2,7 @@
 
 #include "PortalGame.h"
 #include "PortalUtils.h"
+#include "BarrierActor.h"
 #include "HexEditorActor.h"
 #include "HexTileActor.h"
 
@@ -69,3 +70,25 @@ void AHexTileActor::SetCoordinates(const S_HexCoordinates& c)
 {
 	m_Coordinates = c;
 }
+
+//========================================================================
+void AHexTileActor::PlaceBarrierAt(ABarrierActor& b, unsigned id)
+{
+	check(!HasBarrierAt(id));
+	m_NeighborBarriers[id] = &b;
+}
+
+//========================================================================
+void AHexTileActor::RemoveBarrierAt(unsigned id)
+{
+	check(HasBarrierAt(id));
+	m_NeighborBarriers[id] = nullptr;
+}
+
+//========================================================================
+bool AHexTileActor::HasBarrierAt(unsigned id)
+{
+	return m_NeighborBarriers[id] != nullptr;
+}
+
+//========================================================================

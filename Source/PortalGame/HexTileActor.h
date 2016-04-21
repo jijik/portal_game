@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "HexTileActor.generated.h"
 
+class ABarrierActor;
+
 UCLASS()
 class PORTALGAME_API AHexTileActor : public AStaticMeshActor
 {
@@ -23,7 +25,13 @@ public:
 	const S_HexCoordinates& GetCoordinates();
 	void										SetCoordinates(const S_HexCoordinates&);
 
+	void			PlaceBarrierAt(ABarrierActor& b, unsigned id);
+	void			RemoveBarrierAt(unsigned id);
+	bool			HasBarrierAt(unsigned id);
+
 private:
-	S_HexCoordinates	m_Coordinates;
-	unsigned					m_CurrentModelId = 0;
+	S_HexCoordinates				m_Coordinates;
+	unsigned								m_CurrentModelId = 0;
+
+	Array6<ABarrierActor*>	m_NeighborBarriers;
 };

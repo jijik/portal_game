@@ -57,7 +57,9 @@ private:
 	void					ShowExpansionArrows();
 	void					ChangeInputMode();
 
+	void					CreateBarrierForPlacing();
 	void					UpdateBarriers();
+	void					PlaceBarrier();
 	unsigned			GetNeighborId(const FVector& fromCenter);
 
 private:

@@ -70,7 +70,14 @@ void AHexEditorActor::Tick(float DeltaTime)
 //========================================================================
 void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 {
-	SelectTile(&hexTile);
+	if (m_InputType == InputMode::Expanding)
+	{
+		SelectTile(&hexTile);
+	}
+	else if (m_InputType == InputMode::Barriers)
+	{
+		PlaceBarrier();
+	}
 }
 
 //========================================================================
@@ -169,6 +176,8 @@ void AHexEditorActor::ExpandUp()
 //========================================================================
 void AHexEditorActor::DeleteTile()
 {
+	check(m_InputType == InputMode::Expanding);
+
 	if (m_SelectedHexTile == nullptr)
 	{
 		return;
@@ -197,16 +206,24 @@ AHexEditorActor::T_HexGrid& AHexEditorActor::GetHexGrid()
 //========================================================================
 void AHexEditorActor::CycleModel()
 {
-	if (m_SelectedHexTile)
+	if (m_InputType == InputMode::Expanding)
 	{
-		m_SelectedHexTile->CycleModel();
+		if (m_SelectedHexTile)
+		{
+			m_SelectedHexTile->CycleModel();
+		}
+	}
+	else if (m_InputType == InputMode::Barriers)
+	{
+		check(m_CurrentBarrier);
+		m_CurrentBarrier->CycleModel();
 	}
 }
 
 //========================================================================
 void AHexEditorActor::RotateModel()
 {
-	if (m_SelectedHexTile)
+	if (m_InputType == InputMode::Expanding && m_SelectedHexTile)
 	{
 		m_SelectedHexTile->RotateModel();
 	}
@@ -220,10 +237,7 @@ void AHexEditorActor::ChangeInputMode()
 	if (m_InputType == InputMode::Expanding)
 	{
 		m_InputType = InputMode::Barriers;
-
-		check(m_CurrentBarrier == nullptr);
-		m_CurrentBarrier = GetWorld()->SpawnActor<ABarrierActor>();
-		m_CurrentBarrier->Init();
+		CreateBarrierForPlacing();
 	}
 	else if (m_InputType == InputMode::Barriers)
 	{
@@ -231,7 +245,16 @@ void AHexEditorActor::ChangeInputMode()
 
 		check(m_CurrentBarrier);
 		GetWorld()->DestroyActor(m_CurrentBarrier);
+		m_CurrentBarrier = nullptr;
 	}
+}
+
+//========================================================================
+void AHexEditorActor::CreateBarrierForPlacing()
+{
+	check(m_CurrentBarrier == nullptr);
+	m_CurrentBarrier = GetWorld()->SpawnActor<ABarrierActor>();
+	m_CurrentBarrier->Init();
 }
 
 //========================================================================
@@ -257,6 +280,12 @@ void AHexEditorActor::UpdateBarriers()
 			auto pos = m_Grid.GetPositionBetweenTiles(coords, coords + neighborRelativeCoordinates);
 			m_CurrentBarrier->SetActorLocation(pos);
 			m_CurrentBarrier->SetActorRotation(FRotator(0, 60 * -(int)nId, 0));
+
+			m_CurrentBarrier->SetOwningTileBeforePlace(hexActor, nId);
+		}
+		else
+		{
+			m_CurrentBarrier->SetOwningTileBeforePlace(nullptr);
 		}
 	}
 }
@@ -275,3 +304,46 @@ unsigned AHexEditorActor::GetNeighborId(const FVector& fromCenter)
 	segment %= 6;
 	return segment;
 }
+
+//========================================================================
+void AHexEditorActor::PlaceBarrier()
+{
+	if (!m_CurrentBarrier->IsReadyToPlace())
+	{
+		return;
+	}
+
+	auto* owningTile = m_CurrentBarrier->GetOwningTileBeforePlace();
+	auto sectorDir = m_CurrentBarrier->GetOwningSectorBeforePlace();
+
+	check(owningTile);
+
+	if (owningTile->HasBarrierAt(sectorDir))
+	{
+		return;
+	}
+
+	auto neighborCoordinates = owningTile->GetCoordinates() + T_HexGrid::HorizontalNeighborIndexes[sectorDir];
+	auto neighborTile = m_Grid.GetElement(neighborCoordinates);
+
+	owningTile->PlaceBarrierAt(*m_CurrentBarrier, sectorDir);
+
+	if (neighborTile)
+	{
+		auto complementarySector = T_HexGrid::GetComplementaryNeighborIndex(sectorDir);
+		check(!neighborTile->HasBarrierAt(complementarySector));
+		neighborTile->PlaceBarrierAt(*m_CurrentBarrier, complementarySector);
+	}
+
+	m_CurrentBarrier->Place(*owningTile, neighborTile);
+
+	m_CurrentBarrier = nullptr; //leave it to live it's life
+
+	CreateBarrierForPlacing();
+}
+
+//========================================================================
+
+//========================================================================
+
+//========================================================================

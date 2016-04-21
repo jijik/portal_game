@@ -21,6 +21,7 @@ class PORTALGAME_API C_HexGrid
 {
 public:
 	static const Array6<S_HexCoordinates> HorizontalNeighborIndexes;
+	static unsigned GetComplementaryNeighborIndex(unsigned id);
 
 	void		Init();
 	void		InsertElement(const S_HexCoordinates& coordinates, const T& element);
@@ -47,6 +48,13 @@ const Array6<S_HexCoordinates> C_HexGrid<T>::HorizontalNeighborIndexes = {	S_Hex
 																																						S_HexCoordinates(-1,0),
 																																						S_HexCoordinates(-1,1),
 																																						S_HexCoordinates(0, 1) };
+
+//========================================================================
+template <typename T>
+unsigned C_HexGrid<T>::GetComplementaryNeighborIndex(unsigned id)
+{
+	return (id + 3) % 6;
+}
 
 //========================================================================
 template <typename T>
