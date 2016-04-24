@@ -483,16 +483,10 @@ void AHexEditorActor::SaveMap(const FString& name)
 	
 	auto& gridStorage = m_Grid.GetStorage();
 
-	file << gridStorage.size();
+	binary_write(file, (unsigned)gridStorage.size());
 	for (auto& pair : gridStorage)
 	{
-		auto& coordinates = pair.first;
-		auto* element = pair.second;
-
-		if (element)
-		{
-			element->Save(file);
-		}
+		pair.second->Save(file);
 	}
 
 	file.close();
@@ -502,6 +496,23 @@ void AHexEditorActor::SaveMap(const FString& name)
 void AHexEditorActor::LoadMap(const FString& name)
 {
 	ClearAll();
+
+	std::ifstream file(*name, std::ifstream::binary);
+	if (!file.good())
+	{
+		print(TEXT("no such map file!"));
+		return;
+	}
+
+	unsigned tiles = 0;
+	binary_read(file, tiles);
+	for (unsigned i = 0; i < tiles; ++i)
+	{
+		auto* tile = GetWorld()->SpawnActor<AHexTileActor>();
+		tile->Init({ 0,0,0 }); //tmp coords;
+		tile->Load(file);
+		m_Grid.InsertElement(tile->GetCoordinates(), tile);
+	}
 }
 
 //========================================================================

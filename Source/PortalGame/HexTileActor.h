@@ -31,10 +31,11 @@ public:
 	ABarrierActor*	GetBarrierAt(HexDir id);
 
 	void						Save(std::ofstream& stream);
+	void						Load(std::ifstream& stream);
 
 private:
 	S_HexCoordinates				m_Coordinates;
-	HexDir									m_CurrentModelId = 0;
+	unsigned								m_CurrentModelId = 0;
 
 	Array6<ABarrierActor*>	m_NeighborBarriers;
 };

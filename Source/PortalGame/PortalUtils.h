@@ -29,3 +29,15 @@ extern class AHexEditorActor* gHexEditor;
 //========================================================================
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
 
+//========================================================================
+template<typename T>
+std::ostream& binary_write(std::ostream& stream, const T& value) {
+	return stream.write(reinterpret_cast<const char*>(&value), sizeof(T));
+}
+
+template<typename T>
+std::istream & binary_read(std::istream& stream, T& value) {
+	return stream.read(reinterpret_cast<char*>(&value), sizeof(T));
+}
+
+//========================================================================

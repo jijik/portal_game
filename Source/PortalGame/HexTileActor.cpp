@@ -104,6 +104,18 @@ ABarrierActor* AHexTileActor::GetBarrierAt(HexDir id)
 //========================================================================
 void AHexTileActor::Save(std::ofstream& stream)
 {
-	stream << m_CurrentModelId;
+	binary_write(stream, m_CurrentModelId);
 	m_Coordinates.Save(stream);
+}
+
+//========================================================================
+void AHexTileActor::Load(std::ifstream& stream)
+{
+	binary_read(stream, m_CurrentModelId);
+	m_Coordinates.Load(stream);
+
+	GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableTiles[m_CurrentModelId]);
+
+	auto pos = gHexEditor->GetHexGrid().GetPosition(m_Coordinates);
+	SetActorLocation(pos);
 }
