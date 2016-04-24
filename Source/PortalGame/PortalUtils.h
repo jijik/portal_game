@@ -3,6 +3,8 @@
 #pragma once
 
 #include <array>
+#include <ostream>
+#include <fstream>
 #include "Runtime/Slate/Public/Widgets/Notifications/SNotificationList.h"
 #include "Runtime/Slate/Public/Framework/Notifications/NotificationManager.h"
 
@@ -23,3 +25,7 @@ using Array6 = std::array<T, 6>;
 
 //========================================================================
 extern class AHexEditorActor* gHexEditor;
+
+//========================================================================
+#define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
+

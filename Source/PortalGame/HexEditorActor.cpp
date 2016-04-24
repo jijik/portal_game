@@ -6,6 +6,9 @@
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
+#include <ostream>
+#include <fstream>
+
 //========================================================================
 AHexEditorActor::AHexEditorActor()
 	:m_RootTileCoordinates(0,0,0)
@@ -21,6 +24,8 @@ AHexEditorActor::AHexEditorActor()
 
 	m_DefaultMaterial = DefaultMat.Object;
 	m_SelectedMaterial = Selected.Object;
+
+
 }
 
 //========================================================================
@@ -227,22 +232,29 @@ void AHexEditorActor::DeleteTile()
 
 	auto* toDestroy = m_SelectedHexTile;
 
-	for (HexDir i = 0; i < 6; ++i)
-	{
-		auto* barrier = m_SelectedHexTile->GetBarrierAt(i);
-		if (barrier)
-		{
-			auto orphan = barrier->UnlinkTileFomBarrier(*m_SelectedHexTile);
-			if (orphan)
-			{
-				GetWorld()->DestroyActor(barrier);
-			}
-		}
-	}
+	UnlinkBarriersFromTile(*m_SelectedHexTile);
 
 	DeselectTile();
 	GetWorld()->DestroyActor(toDestroy);
 	m_Grid.RemoveElement(coords);
+}
+
+//========================================================================
+void AHexEditorActor::UnlinkBarriersFromTile(AHexTileActor& hexTile)
+{
+	for (HexDir i = 0; i < 6; ++i)
+	{
+		auto* barrier = hexTile.GetBarrierAt(i);
+		if (barrier)
+		{
+			auto orphan = barrier->UnlinkTileFomBarrier(hexTile);
+			if (orphan)
+			{
+				GetWorld()->DestroyActor(barrier);
+			}
+			hexTile.RemoveBarrierAt(i);
+		}
+	}
 }
 
 //========================================================================
@@ -257,6 +269,9 @@ void AHexEditorActor::DeleteBarrier()
 
 	m_SelectedBarrier->UnlinkBarrierFromNeighborTiles();
 	GetWorld()->DestroyActor(m_SelectedBarrier);
+
+	m_AllBarriers.erase(m_SelectedBarrier);
+
 	m_SelectedBarrier = nullptr;
 }
 
@@ -400,6 +415,8 @@ void AHexEditorActor::PlaceBarrier()
 
 	m_CurrentBarrier->Place(*owningTile, sectorDir, neighborTile, complementarySector);
 
+	m_AllBarriers.insert(m_CurrentBarrier);
+
 	m_CurrentBarrier = nullptr; //leave it to live it's life
 
 	CreateBarrierForPlacing();
@@ -431,6 +448,60 @@ void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 	{
 		m_SelectedBarrier->SetSelectedMaterial(true);
 	}
+}
+
+//========================================================================
+void AHexEditorActor::ClearAll()
+{
+	std::vector<AHexTileActor*> toDelete;
+
+	for (auto& pair: m_Grid.GetStorage())
+	{
+		if (!pair.first.IsZero()) //delete all but main tile
+		{
+			toDelete.push_back(pair.second);
+		}
+	}
+
+	while (!toDelete.empty())
+	{
+		SelectTile(toDelete.back());
+		DeleteTile();
+		toDelete.pop_back();
+	}
+
+	auto* element = m_Grid.GetElement({ 0,0,0 });
+	check(element);
+	UnlinkBarriersFromTile(*element);
+}
+
+//========================================================================
+void AHexEditorActor::SaveMap(const FString& name)
+{
+	std::ofstream file;
+	file.open(*name, std::ofstream::binary);
+	
+	auto& gridStorage = m_Grid.GetStorage();
+
+	file << gridStorage.size();
+	for (auto& pair : gridStorage)
+	{
+		auto& coordinates = pair.first;
+		auto* element = pair.second;
+
+		if (element)
+		{
+			element->Save(file);
+		}
+	}
+
+	file.close();
+}
+
+//========================================================================
+void AHexEditorActor::LoadMap(const FString& name)
+{
+	ClearAll();
 }
 
 //========================================================================

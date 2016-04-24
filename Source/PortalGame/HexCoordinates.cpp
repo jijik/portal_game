@@ -54,6 +54,18 @@ bool S_HexCoordinates::IsHorizontalDir() const
 }
 
 //========================================================================
+bool S_HexCoordinates::IsZero() const
+{
+	return s == t && t == z && z == 0;
+}
+
+//========================================================================
+void S_HexCoordinates::Save(std::ofstream& stream)
+{
+	stream << s << t << z;
+}
+
+//========================================================================
 bool S_HexCoordinates::operator==(const S_HexCoordinates& rhs) const
 {
 	return rhs.s == s && rhs.t == t && rhs.z == z;

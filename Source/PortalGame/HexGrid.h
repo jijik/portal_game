@@ -32,8 +32,11 @@ public:
 	FVector	GetPosition(const S_HexCoordinates& coordinates);
 	FVector	GetPositionBetweenTiles(const S_HexCoordinates& c1, const S_HexCoordinates& c2);
 
+	using T_Storage = std::unordered_map<S_HexCoordinates, T>;
+	const T_Storage& GetStorage();
+
 private:
-	std::unordered_map<S_HexCoordinates, T>		m_GridMap;
+	T_Storage					m_GridMap;
 	float							m_TileRadius;
 	float							m_BoundaryDistance;
 	S_HexCoordinates	m_SelectedTile;
@@ -127,5 +130,14 @@ void C_HexGrid<T>::SetTileRadius(float tileRadius)
 	m_TileRadius = tileRadius;
 	m_BoundaryDistance = sqrtf(FMath::Square(m_TileRadius) - FMath::Square(0.5*m_TileRadius));
 }
+
+
+//========================================================================
+template <typename T>
+const typename C_HexGrid<T>::T_Storage& C_HexGrid<T>::GetStorage()
+{
+	return m_GridMap;
+}
+
 
 //========================================================================

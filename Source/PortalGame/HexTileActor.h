@@ -30,6 +30,8 @@ public:
 	bool						HasBarrierAt(HexDir id);
 	ABarrierActor*	GetBarrierAt(HexDir id);
 
+	void						Save(std::ofstream& stream);
+
 private:
 	S_HexCoordinates				m_Coordinates;
 	HexDir									m_CurrentModelId = 0;

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <set>
+
 #include "GameFramework/Actor.h"
 #include "HexGrid.h"
 #include "HexTileActor.h"
@@ -26,6 +28,9 @@ public:
 	void					Deselect();
 	void					Expand(const S_HexCoordinates& dir);
 	void					SelectBarrier(ABarrierActor* ba);
+	void					ClearAll();
+	void					SaveMap(const FString& name);
+	void					LoadMap(const FString& name);
 
 	UPROPERTY(EditAnywhere)
 	UClass*								ExpansionArrowActor;
@@ -55,6 +60,8 @@ public:
 
 private:
 	void					DeleteTile();
+	void					UnlinkBarriersFromTile(AHexTileActor& hexTile);
+
 	void					ExpandUp();
 	void					HandleSelectionMaterial(AHexTileActor* hexTile);
 	void					CycleModel();
@@ -79,4 +86,5 @@ private:
 
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;
+	std::set<ABarrierActor*> m_AllBarriers;
 };

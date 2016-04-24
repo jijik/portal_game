@@ -102,3 +102,8 @@ ABarrierActor* AHexTileActor::GetBarrierAt(HexDir id)
 }
 
 //========================================================================
+void AHexTileActor::Save(std::ofstream& stream)
+{
+	stream << m_CurrentModelId;
+	m_Coordinates.Save(stream);
+}

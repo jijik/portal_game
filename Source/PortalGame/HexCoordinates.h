@@ -23,10 +23,12 @@ struct PORTALGAME_API S_HexCoordinates
 	bool		Valid();
 	HexDir	ToHexDir() const;
 	bool		IsHorizontalDir() const;
+	bool		IsZero() const;
 
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, const S_HexCoordinates&);
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, HexDir);
 
+	void	Save(std::ofstream& stream);
 };
 
 S_HexCoordinates operator+(const S_HexCoordinates& lhs, const S_HexCoordinates& rhs);
