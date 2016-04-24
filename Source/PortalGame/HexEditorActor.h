@@ -7,6 +7,8 @@
 #include "HexTileActor.h"
 #include "HexEditorActor.generated.h"
 
+class ABarrierActor;
+
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
 {
@@ -21,7 +23,9 @@ public:
 	void					ClickOnTile(AHexTileActor& hexTile);
 	void					SelectTile(AHexTileActor* hexTile);
 	void					DeselectTile();
+	void					Deselect();
 	void					Expand(const S_HexCoordinates& dir);
+	void					SelectBarrier(ABarrierActor* ba);
 
 	UPROPERTY(EditAnywhere)
 	UClass*								ExpansionArrowActor;
@@ -46,7 +50,8 @@ public:
 	float									m_TimeWhenRotateBegin;
 	bool									m_SuppressCursor = false;
 
-	class ABarrierActor*	m_CurrentBarrier = nullptr;
+	ABarrierActor*	m_CurrentBarrier = nullptr; //during placing
+	ABarrierActor*	m_SelectedBarrier = nullptr;
 
 private:
 	void					DeleteTile();
@@ -61,6 +66,7 @@ private:
 	void					UpdateBarriers();
 	void					PlaceBarrier();
 	unsigned			GetNeighborId(const FVector& fromCenter);
+	void					DeleteBarrier();
 
 private:
 

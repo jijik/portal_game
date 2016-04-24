@@ -32,12 +32,18 @@ public:
 	AHexTileActor*	GetOwningTileBeforePlace();
 	unsigned				GetOwningSectorBeforePlace();
 
-	void						Place(AHexTileActor& front, AHexTileActor* back);
-	bool						UnlinkTile(AHexTileActor& tile); // returns if left orphan
+	void						Place(AHexTileActor& front, HexDir frontSlot, AHexTileActor* back, HexDir backSlot);
+	bool						UnlinkTileFomBarrier(AHexTileActor& tile); // returns if left orphan
+	void						UnlinkBarrierFromNeighborTiles();
+
+	UFUNCTION()
+	void						OnClick(UPrimitiveComponent*pc);
+	void						SetSelectedMaterial(bool b);
 
 private:
 	unsigned																	m_CurrentModelId = 0;
-	std::pair<AHexTileActor*, AHexTileActor*> m_Neighbors; //first is always valid
+	struct S_NeighborInfo { AHexTileActor* neighbor; HexDir slotAtNeighbor; };
+	std::pair<S_NeighborInfo, S_NeighborInfo> m_Neighbors; //first is always valid
 	AHexTileActor*														m_OwningTileBeforePlace = nullptr;
 	HexDir																		m_OwningSectorBeforePlace = InvalidHexDir;
 };

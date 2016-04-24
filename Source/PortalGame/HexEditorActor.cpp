@@ -33,7 +33,7 @@ void AHexEditorActor::BeginPlay()
 	m_Grid.InsertElement({ 0, 0 }, this);
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::DeselectTile);
+	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
 	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
@@ -52,6 +52,7 @@ void AHexEditorActor::BeginPlay()
 		auto* actor = GetWorld()->SpawnActor(ExpansionArrowActor, &locator, &rot);
 		m_Arrows[i] = CastChecked<AStaticMeshActor>(actor);
 		m_Arrows[i]->GetStaticMeshComponent()->SetVisibility(false);
+		m_Arrows[i]->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		m_Arrows[i]->GetStaticMeshComponent()->SetMobility(EComponentMobility::Movable);
 		auto* arrowComp = m_Arrows[i]->FindComponentByClass<UExpandArrowComponent>();
 		check(arrowComp);
@@ -87,12 +88,29 @@ void AHexEditorActor::SelectTile(AHexTileActor* hexTile)
 
 	m_SelectedHexTile = hexTile;
 	ShowExpansionArrows();
+
+	if (hexTile)
+	{
+		SelectBarrier(nullptr);
+	}
 }
 
 //========================================================================
 void AHexEditorActor::DeselectTile()
 {
 	SelectTile(nullptr);
+}
+
+//========================================================================
+void AHexEditorActor::Deselect()
+{
+	if (m_InputType == InputMode::Barriers)
+	{
+		ChangeInputMode();
+	}
+
+	DeselectTile();
+	SelectBarrier(nullptr);
 }
 
 //========================================================================
@@ -115,6 +133,7 @@ void AHexEditorActor::ShowExpansionArrows()
 	for (auto* arrow : m_Arrows)
 	{
 		arrow->GetStaticMeshComponent()->SetVisibility(false);
+		arrow->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 
 	if (m_SelectedHexTile == nullptr)
@@ -132,6 +151,7 @@ void AHexEditorActor::ShowExpansionArrows()
 			auto p = m_Grid.GetPosition(currentTile);
 			m_Arrows[i]->SetActorLocation(p);
 			m_Arrows[i]->GetStaticMeshComponent()->SetVisibility(true);
+			m_Arrows[i]->GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		}
 	}
 }
@@ -154,8 +174,9 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 	auto* barrier = m_SelectedHexTile->GetBarrierAt(hexDir);
 	if (barrier)
 	{
-		tile->PlaceBarrierAt(*barrier, T_HexGrid::GetComplementaryNeighborIndex(hexDir));
-		barrier->Place(*m_SelectedHexTile, tile);
+		auto complementDir = T_HexGrid::GetComplementaryNeighborIndex(hexDir);
+		tile->PlaceBarrierAt(*barrier, complementDir);
+		barrier->Place(*m_SelectedHexTile, hexDir, tile, complementDir);
 	}
 
 	DeselectTile();
@@ -186,6 +207,8 @@ void AHexEditorActor::DeleteTile()
 {
 	check(m_InputType == InputMode::Expanding);
 
+	DeleteBarrier();
+
 	if (m_SelectedHexTile == nullptr)
 	{
 		return;
@@ -206,7 +229,7 @@ void AHexEditorActor::DeleteTile()
 		auto* barrier = m_SelectedHexTile->GetBarrierAt(i);
 		if (barrier)
 		{
-			auto orphan = barrier->UnlinkTile(*m_SelectedHexTile);
+			auto orphan = barrier->UnlinkTileFomBarrier(*m_SelectedHexTile);
 			if (orphan)
 			{
 				GetWorld()->DestroyActor(barrier);
@@ -217,6 +240,21 @@ void AHexEditorActor::DeleteTile()
 	DeselectTile();
 	GetWorld()->DestroyActor(toDestroy);
 	m_Grid.RemoveElement(coords);
+}
+
+//========================================================================
+void AHexEditorActor::DeleteBarrier()
+{
+	if (m_SelectedBarrier == nullptr)
+	{
+		return;
+	}
+
+	check(m_SelectedHexTile == nullptr);
+
+	m_SelectedBarrier->UnlinkBarrierFromNeighborTiles();
+	GetWorld()->DestroyActor(m_SelectedBarrier);
+	m_SelectedBarrier = nullptr;
 }
 
 //========================================================================
@@ -254,8 +292,6 @@ void AHexEditorActor::RotateModel()
 //========================================================================
 void AHexEditorActor::ChangeInputMode()
 {
-	DeselectTile();
-
 	if (m_InputType == InputMode::Expanding)
 	{
 		m_InputType = InputMode::Barriers;
@@ -269,6 +305,8 @@ void AHexEditorActor::ChangeInputMode()
 		GetWorld()->DestroyActor(m_CurrentBarrier);
 		m_CurrentBarrier = nullptr;
 	}
+
+	DeselectTile();
 }
 
 //========================================================================
@@ -350,14 +388,14 @@ void AHexEditorActor::PlaceBarrier()
 
 	owningTile->PlaceBarrierAt(*m_CurrentBarrier, sectorDir);
 
+	auto complementarySector = T_HexGrid::GetComplementaryNeighborIndex(sectorDir);
 	if (neighborTile)
 	{
-		auto complementarySector = T_HexGrid::GetComplementaryNeighborIndex(sectorDir);
 		check(!neighborTile->HasBarrierAt(complementarySector));
 		neighborTile->PlaceBarrierAt(*m_CurrentBarrier, complementarySector);
 	}
 
-	m_CurrentBarrier->Place(*owningTile, neighborTile);
+	m_CurrentBarrier->Place(*owningTile, sectorDir, neighborTile, complementarySector);
 
 	m_CurrentBarrier = nullptr; //leave it to live it's life
 
@@ -365,6 +403,32 @@ void AHexEditorActor::PlaceBarrier()
 }
 
 //========================================================================
+void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
+{
+	if (m_InputType == InputMode::Barriers)
+	{
+		return;
+	}
+
+	if (ba)
+	{
+		DeselectTile();
+	}
+
+	check(m_CurrentBarrier == nullptr);
+
+	if (m_SelectedBarrier)
+	{
+		m_SelectedBarrier->SetSelectedMaterial(false);
+	}
+
+	m_SelectedBarrier = ba;
+
+	if (m_SelectedBarrier)
+	{
+		m_SelectedBarrier->SetSelectedMaterial(true);
+	}
+}
 
 //========================================================================
 
