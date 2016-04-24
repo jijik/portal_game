@@ -48,6 +48,12 @@ bool S_HexCoordinates::Valid()
 }
 
 //========================================================================
+bool S_HexCoordinates::IsHorizontalDir() const 
+{
+	return z == 0;
+}
+
+//========================================================================
 bool S_HexCoordinates::operator==(const S_HexCoordinates& rhs) const
 {
 	return rhs.s == s && rhs.t == t && rhs.z == z;

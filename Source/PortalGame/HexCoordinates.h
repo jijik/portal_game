@@ -22,6 +22,7 @@ struct PORTALGAME_API S_HexCoordinates
 
 	bool		Valid();
 	HexDir	ToHexDir() const;
+	bool		IsHorizontalDir() const;
 
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, const S_HexCoordinates&);
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, HexDir);

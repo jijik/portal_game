@@ -170,13 +170,16 @@ void AHexEditorActor::Expand(const S_HexCoordinates& dir)
 
 	m_Grid.InsertElement(expandedCoordinated, tile);
 
-	auto hexDir = dir.ToHexDir();
-	auto* barrier = m_SelectedHexTile->GetBarrierAt(hexDir);
-	if (barrier)
+	if (dir.IsHorizontalDir())
 	{
-		auto complementDir = T_HexGrid::GetComplementaryNeighborIndex(hexDir);
-		tile->PlaceBarrierAt(*barrier, complementDir);
-		barrier->Place(*m_SelectedHexTile, hexDir, tile, complementDir);
+		auto hexDir = dir.ToHexDir();
+		auto* barrier = m_SelectedHexTile->GetBarrierAt(hexDir);
+		if (barrier)
+		{
+			auto complementDir = T_HexGrid::GetComplementaryNeighborIndex(hexDir);
+			tile->PlaceBarrierAt(*barrier, complementDir);
+			barrier->Place(*m_SelectedHexTile, hexDir, tile, complementDir);
+		}
 	}
 
 	DeselectTile();
