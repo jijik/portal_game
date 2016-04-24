@@ -40,6 +40,9 @@ public:
 	void						OnClick(UPrimitiveComponent*pc);
 	void						SetSelectedMaterial(bool b);
 
+	void						Save(std::ofstream& file);
+	void						Load(std::ifstream& file);
+
 private:
 	unsigned																	m_CurrentModelId = 0;
 	struct S_NeighborInfo { AHexTileActor* neighbor; HexDir slotAtNeighbor; };

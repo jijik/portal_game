@@ -106,6 +106,9 @@ void AHexTileActor::Save(std::ofstream& stream)
 {
 	binary_write(stream, m_CurrentModelId);
 	m_Coordinates.Save(stream);
+
+	binary_write(stream, GetActorLocation());
+	binary_write(stream, GetActorRotation());
 }
 
 //========================================================================
@@ -116,6 +119,9 @@ void AHexTileActor::Load(std::ifstream& stream)
 
 	GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableTiles[m_CurrentModelId]);
 
-	auto pos = gHexEditor->GetHexGrid().GetPosition(m_Coordinates);
-	SetActorLocation(pos);
+	FVector pos;
+	FRotator rot;
+	binary_read(stream, pos);
+	binary_read(stream, rot);
+	SetActorLocationAndRotation(pos, rot);
 }

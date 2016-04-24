@@ -28,7 +28,7 @@ struct PORTALGAME_API S_HexCoordinates
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, const S_HexCoordinates&);
 	friend S_HexCoordinates operator+(const S_HexCoordinates&, HexDir);
 
-	void	Save(std::ofstream& stream);
+	void	Save(std::ofstream& stream) const;
 	void	Load(std::ifstream& stream);
 };
 

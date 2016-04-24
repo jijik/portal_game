@@ -127,3 +127,37 @@ void ABarrierActor::SetSelectedMaterial(bool b)
 		GetStaticMeshComponent()->SetMaterial(0, gHexEditor->m_DefaultMaterial);
 	}
 }
+
+//========================================================================
+void ABarrierActor::Save(std::ofstream& file)
+{
+	binary_write(file, m_CurrentModelId);
+	
+	m_Neighbors.first.neighbor->GetCoordinates().Save(file); //id
+	binary_write(file, m_Neighbors.first.slotAtNeighbor);
+
+	binary_write(file, GetActorLocation());
+	binary_write(file, GetActorRotation());
+}
+
+//========================================================================
+void ABarrierActor::Load(std::ifstream& file)
+{
+	binary_read(file, m_CurrentModelId);
+
+	//will be placed later
+	S_HexCoordinates coords;
+	coords.Load(file);
+	binary_read(file, m_OwningSectorBeforePlace);
+
+	m_OwningTileBeforePlace = gHexEditor->GetHexGrid().GetElement(coords);
+	check(m_OwningTileBeforePlace);
+
+	GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
+
+	FRotator rot;
+	FVector pos;
+	binary_read(file, pos);
+	binary_read(file, rot);
+	SetActorLocationAndRotation(pos, rot);
+}

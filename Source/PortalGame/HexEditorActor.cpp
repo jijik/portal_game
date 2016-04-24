@@ -384,7 +384,7 @@ unsigned AHexEditorActor::GetNeighborId(const FVector& fromCenter)
 }
 
 //========================================================================
-void AHexEditorActor::PlaceBarrier()
+void AHexEditorActor::PlaceBarrier(bool createAnother)
 {
 	if (!m_CurrentBarrier->IsReadyToPlace())
 	{
@@ -419,7 +419,10 @@ void AHexEditorActor::PlaceBarrier()
 
 	m_CurrentBarrier = nullptr; //leave it to live it's life
 
-	CreateBarrierForPlacing();
+	if (createAnother)
+	{
+		CreateBarrierForPlacing();
+	}
 }
 
 //========================================================================
@@ -489,6 +492,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 		pair.second->Save(file);
 	}
 
+	binary_write(file, (unsigned)m_AllBarriers.size());
+	for (auto* barrier : m_AllBarriers)
+	{
+		barrier->Save(file);
+	}
+
 	file.close();
 }
 
@@ -504,15 +513,25 @@ void AHexEditorActor::LoadMap(const FString& name)
 		return;
 	}
 
-	unsigned tiles = 0;
-	binary_read(file, tiles);
-	for (unsigned i = 0; i < tiles; ++i)
+	unsigned count = 0;
+	binary_read(file, count); //tiles
+	for (unsigned i = 0; i < count; ++i)
 	{
 		auto* tile = GetWorld()->SpawnActor<AHexTileActor>();
 		tile->Init({ 0,0,0 }); //tmp coords;
 		tile->Load(file);
 		m_Grid.InsertElement(tile->GetCoordinates(), tile);
 	}
+
+	binary_read(file, count); //barriers
+	for (unsigned i = 0; i < count; ++i)
+	{
+		CreateBarrierForPlacing();
+		m_CurrentBarrier->Load(file);
+		PlaceBarrier(false);
+	}
+
+	file.close();
 }
 
 //========================================================================

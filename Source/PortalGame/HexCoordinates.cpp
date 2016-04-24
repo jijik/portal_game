@@ -60,7 +60,7 @@ bool S_HexCoordinates::IsZero() const
 }
 
 //========================================================================
-void S_HexCoordinates::Save(std::ofstream& stream)
+void S_HexCoordinates::Save(std::ofstream& stream) const
 {
 	binary_write(stream, s);
 	binary_write(stream, t);

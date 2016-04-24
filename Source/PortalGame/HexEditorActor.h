@@ -71,7 +71,7 @@ private:
 
 	void					CreateBarrierForPlacing();
 	void					UpdateBarriers();
-	void					PlaceBarrier();
+	void					PlaceBarrier(bool createAnother = true);
 	unsigned			GetNeighborId(const FVector& fromCenter);
 	void					DeleteBarrier();
 
