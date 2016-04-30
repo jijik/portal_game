@@ -100,6 +100,7 @@ void AHexEditorActor::RegisterRegisterExpandingBinding()
 //========================================================================
 void AHexEditorActor::RegisterRegisterBarriersBinding()
 {
+	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
@@ -129,8 +130,7 @@ void AHexEditorActor::UnregisterAllBindings()
 //========================================================================
 void AHexEditorActor::Tick(float DeltaTime)
 {
-	const char* msg = InputModeStr[m_InputType].c_str();
-	print_frame(msg, DeltaTime);
+	print_frame(InputModeStr[m_InputType].c_str(), DeltaTime);
 
 	UpdateBarriers();
 }
@@ -171,7 +171,7 @@ void AHexEditorActor::DeselectTile()
 //========================================================================
 void AHexEditorActor::Deselect()
 {
-	if (m_InputType == InputMode::Barriers)
+	if (m_InputType != InputMode::Expanding)
 	{
 		ChangeInputMode(InputMode::None);
 	}
@@ -494,6 +494,8 @@ void AHexEditorActor::PlaceBarrier(bool createAnother)
 	{
 		CreateBarrierForPlacing();
 	}
+
+	print("Barrier placed...");
 }
 
 //========================================================================
