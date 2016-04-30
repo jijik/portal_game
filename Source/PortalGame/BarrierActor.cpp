@@ -19,6 +19,7 @@ void ABarrierActor::Init()
 	meshComp->SetStaticMesh(gHexEditor->AvailableBarriers[0]);
 
 	meshComp->OnClicked.AddDynamic(this, &ABarrierActor::OnClick);
+	meshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 }
 
 //========================================================================
@@ -71,6 +72,8 @@ void ABarrierActor::Place(AHexTileActor& front, HexDir frontSlot, AHexTileActor*
 {
 	m_Neighbors.first = { &front , frontSlot };
 	m_Neighbors.second = { back, backSlot };
+
+	GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 //========================================================================
