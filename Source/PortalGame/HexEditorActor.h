@@ -82,10 +82,15 @@ private:
 	void					ChangeInputMode(InputMode to);
 
 	void					CreateBarrierForPlacing();
-	void					UpdateBarriers();
+	void					UpdateBarrierPlacing();
 	void					PlaceBarrier(bool createAnother = true);
 	unsigned			GetNeighborId(const FVector& fromCenter);
 	void					DeleteBarrier();
+
+	void					CreatePlatformForPlacing();
+	void					UpdatePlatformPlacing();
+	void					PlacePlatform(bool createAnother = true);
+	void					DeletePlatform();
 
 	void					RegisterRegisterNoneBinding();
 	void					RegisterRegisterExpandingBinding();

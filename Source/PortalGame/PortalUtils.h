@@ -3,6 +3,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <ostream>
 #include <fstream>
 #include "Runtime/Slate/Public/Widgets/Notifications/SNotificationList.h"
@@ -43,3 +44,19 @@ std::istream & binary_read(std::istream& stream, T& value) {
 }
 
 //========================================================================
+template <typename DesiredType, typename HitFunc>
+void	Raycast(AActor* actor, HitFunc hitFunc, std::function<void()> noHitFunc = []() {})
+{
+	auto* pc = actor->GetWorld()->GetFirstPlayerController();
+	FHitResult TraceResult(ForceInit);
+	pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_WorldStatic), false, TraceResult);
+	auto* resultActor = Cast<DesiredType>(TraceResult.GetActor());
+	if (resultActor)
+	{
+		hitFunc(resultActor, TraceResult);
+	}
+	else
+	{
+		noHitFunc();
+	}
+}

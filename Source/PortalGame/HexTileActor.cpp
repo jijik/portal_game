@@ -22,6 +22,11 @@ void AHexTileActor::Init(const S_HexCoordinates& coordinates)
 	meshComp->OnClicked.AddDynamic(this, &AHexTileActor::OnClick);
 
 	SetSelectedMaterial(false);
+
+	if (this != gHexEditor)
+	{
+		AttachRootComponentToActor(gHexEditor);
+	}
 }
 
 //========================================================================

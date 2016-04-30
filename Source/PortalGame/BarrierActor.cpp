@@ -20,6 +20,8 @@ void ABarrierActor::Init()
 
 	meshComp->OnClicked.AddDynamic(this, &ABarrierActor::OnClick);
 	meshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+	AttachRootComponentToActor(gHexEditor);
 }
 
 //========================================================================

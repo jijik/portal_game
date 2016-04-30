@@ -26,8 +26,6 @@ AHexEditorActor::AHexEditorActor()
 
 	m_DefaultMaterial = DefaultMat.Object;
 	m_SelectedMaterial = Selected.Object;
-
-
 }
 
 //========================================================================
@@ -132,7 +130,7 @@ void AHexEditorActor::Tick(float DeltaTime)
 {
 	print_frame(InputModeStr[m_InputType].c_str(), DeltaTime);
 
-	UpdateBarriers();
+	UpdateBarrierPlacing();
 }
 
 //========================================================================
@@ -338,6 +336,30 @@ void AHexEditorActor::DeleteBarrier()
 }
 
 //========================================================================
+void AHexEditorActor::CreatePlatformForPlacing()
+{
+
+}
+
+//========================================================================
+void AHexEditorActor::UpdatePlatformPlacing()
+{
+
+}
+
+//========================================================================
+void AHexEditorActor::PlacePlatform(bool createAnother /*= true*/)
+{
+
+}
+
+//========================================================================
+void AHexEditorActor::DeletePlatform()
+{
+
+}
+
+//========================================================================
 AHexEditorActor::T_HexGrid& AHexEditorActor::GetHexGrid()
 {
 	return m_Grid;
@@ -407,35 +429,31 @@ void AHexEditorActor::CreateBarrierForPlacing()
 }
 
 //========================================================================
-void AHexEditorActor::UpdateBarriers()
+void AHexEditorActor::UpdateBarrierPlacing()
 {
 	if (m_CurrentBarrier)
 	{
 		check(m_InputType == InputMode::Barriers);
 		
-		auto* pc = GetWorld()->GetFirstPlayerController();
-		FHitResult TraceResult(ForceInit);
-		pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_WorldStatic), false, TraceResult);
-		auto* actor = TraceResult.GetActor();
-		auto* hexActor = Cast<AHexTileActor>(actor);
-		if (hexActor)
-		{
-			auto& coords = hexActor->GetCoordinates();
-			auto tilePos = m_Grid.GetPosition(coords);
-			auto toHit = TraceResult.ImpactPoint - tilePos;
-			auto nId = GetNeighborId(toHit);
-			auto neighborRelativeCoordinates = T_HexGrid::HorizontalNeighborIndexes[nId];
+		Raycast<AHexTileActor>(this,
+			[&](auto& resultActor, auto& traceResult) 
+			{
+				auto& coords = resultActor->GetCoordinates();
+				auto tilePos = m_Grid.GetPosition(coords);
+				auto toHit = traceResult.ImpactPoint - tilePos;
+				auto nId = GetNeighborId(toHit);
+				auto neighborRelativeCoordinates = T_HexGrid::HorizontalNeighborIndexes[nId];
 
-			auto pos = m_Grid.GetPositionBetweenTiles(coords, coords + neighborRelativeCoordinates);
-			m_CurrentBarrier->SetActorLocation(pos);
-			m_CurrentBarrier->SetActorRotation(FRotator(0, 60 * -(int)nId, 0));
+				auto pos = m_Grid.GetPositionBetweenTiles(coords, coords + neighborRelativeCoordinates);
+				m_CurrentBarrier->SetActorLocation(pos);
+				m_CurrentBarrier->SetActorRotation(FRotator(0, 60 * -(int)nId, 0));
 
-			m_CurrentBarrier->SetOwningTileBeforePlace(hexActor, nId);
-		}
-		else
-		{
-			m_CurrentBarrier->SetOwningTileBeforePlace(nullptr);
-		}
+				m_CurrentBarrier->SetOwningTileBeforePlace(resultActor, nId);
+			},
+			[&]()
+			{
+				m_CurrentBarrier->SetOwningTileBeforePlace(nullptr);
+			});
 	}
 }
 
