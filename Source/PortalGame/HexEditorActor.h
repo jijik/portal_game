@@ -59,6 +59,17 @@ public:
 	ABarrierActor*	m_SelectedBarrier = nullptr;
 
 private:
+	enum InputMode
+	{
+		None = 0,
+		Expanding,
+		Barriers,
+		Platforms,
+		Game,
+		TOTAL
+	};
+	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Game" };
+
 	void					DeleteTile();
 	void					UnlinkBarriersFromTile(AHexTileActor& hexTile);
 
@@ -67,7 +78,8 @@ private:
 	void					CycleModel();
 	void					RotateModel();
 	void					ShowExpansionArrows();
-	void					ChangeInputMode();
+	void					CycleInputMode();
+	void					ChangeInputMode(InputMode to);
 
 	void					CreateBarrierForPlacing();
 	void					UpdateBarriers();
@@ -75,14 +87,13 @@ private:
 	unsigned			GetNeighborId(const FVector& fromCenter);
 	void					DeleteBarrier();
 
-private:
-
-	enum InputMode
-	{
-		Expanding = 0,
-		Barriers,
-		TOTAL
-	};
+	void					RegisterRegisterNoneBinding();
+	void					RegisterRegisterExpandingBinding();
+	void					RegisterRegisterBarriersBinding();
+	void					RegisterRegisterPlatformsBinding();
+	void					RegisterRegisterGameBinding();
+	void					UnregisterAllBindings();
+	void					SwitchBindings(InputMode to);
 
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;

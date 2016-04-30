@@ -3,6 +3,8 @@
 #include "PortalGame.h"
 #include "HexEditorActor.h"
 #include "BarrierActor.h"
+#include "Dude.h"
+#include "HexGame.h"
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -38,12 +40,8 @@ void AHexEditorActor::BeginPlay()
 	m_Grid.InsertElement({ 0, 0 }, this);
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
-	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
-	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
-	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
-	InputComponent->BindAction("ExpandUp", IE_Pressed, this, &AHexEditorActor::ExpandUp);
-	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::ChangeInputMode);
+	
+	SwitchBindings(InputMode::Expanding);
 
 	FVector locator(0, 0, 0);
 	m_ArrowsParent = GetWorld()->SpawnActor(AActor::StaticClass());
@@ -68,8 +66,72 @@ void AHexEditorActor::BeginPlay()
 }
 
 //========================================================================
+void AHexEditorActor::SwitchBindings(InputMode to)
+{
+	UnregisterAllBindings();
+	switch (to)
+	{
+	case AHexEditorActor::None:				RegisterRegisterNoneBinding();			break;
+	case AHexEditorActor::Expanding:	RegisterRegisterExpandingBinding();	break;
+	case AHexEditorActor::Barriers:		RegisterRegisterBarriersBinding();	break;
+	case AHexEditorActor::Platforms:	RegisterRegisterPlatformsBinding();	break;
+	case AHexEditorActor::Game:				RegisterRegisterGameBinding();			break;
+	default:	check(false);	break;
+	}
+}
+
+//========================================================================
+void AHexEditorActor::RegisterRegisterNoneBinding()
+{
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterRegisterExpandingBinding()
+{
+	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
+	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
+	InputComponent->BindAction("RotateModel", IE_Pressed, this, &AHexEditorActor::RotateModel);
+	InputComponent->BindAction("ExpandUp", IE_Pressed, this, &AHexEditorActor::ExpandUp);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterRegisterBarriersBinding()
+{
+	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterRegisterPlatformsBinding()
+{
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterRegisterGameBinding()
+{
+	InputComponent->BindAction("Move", IE_Released, gHexGame->Dude, &ADude::Move);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::UnregisterAllBindings()
+{
+	while (InputComponent->GetNumActionBindings() > 0)
+	{
+		InputComponent->RemoveActionBinding(0);
+	}
+}
+
+//========================================================================
 void AHexEditorActor::Tick(float DeltaTime)
 {
+	const char* msg = InputModeStr[m_InputType].c_str();
+	print_frame(msg, DeltaTime);
+
 	UpdateBarriers();
 }
 
@@ -111,7 +173,7 @@ void AHexEditorActor::Deselect()
 {
 	if (m_InputType == InputMode::Barriers)
 	{
-		ChangeInputMode();
+		ChangeInputMode(InputMode::None);
 	}
 
 	DeselectTile();
@@ -308,23 +370,32 @@ void AHexEditorActor::RotateModel()
 }
 
 //========================================================================
-void AHexEditorActor::ChangeInputMode()
+void AHexEditorActor::CycleInputMode()
 {
-	if (m_InputType == InputMode::Expanding)
-	{
-		m_InputType = InputMode::Barriers;
-		CreateBarrierForPlacing();
-	}
-	else if (m_InputType == InputMode::Barriers)
-	{
-		m_InputType = InputMode::Expanding;
+	unsigned tmp = (unsigned)m_InputType;
+	tmp += 1;
+	tmp %= InputMode::TOTAL;
+	ChangeInputMode((InputMode)tmp);
+}
 
+//========================================================================
+void AHexEditorActor::ChangeInputMode(InputMode to)
+{
+	if (m_InputType == InputMode::Barriers) 
+	{
 		check(m_CurrentBarrier);
 		GetWorld()->DestroyActor(m_CurrentBarrier);
 		m_CurrentBarrier = nullptr;
 	}
 
+	if (to == InputMode::Barriers)
+	{
+		CreateBarrierForPlacing();
+	}
+
+	m_InputType = to;
 	DeselectTile();
+	SwitchBindings(to);
 }
 
 //========================================================================
@@ -428,7 +499,7 @@ void AHexEditorActor::PlaceBarrier(bool createAnother)
 //========================================================================
 void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 {
-	if (m_InputType == InputMode::Barriers)
+	if (m_InputType != InputMode::Expanding)
 	{
 		return;
 	}

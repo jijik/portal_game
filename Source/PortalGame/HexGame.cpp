@@ -17,8 +17,8 @@ AHexGame::AHexGame()
 void AHexGame::BeginPlay()
 {
 	Super::BeginPlay();
-	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindAction("Move", IE_Released, Dude, &ADude::Move);
+	//EnableInput(GetWorld()->GetFirstPlayerController());
+	//InputComponent->BindAction("Move", IE_Released, Dude, &ADude::Move);
 }
 
 //========================================================================

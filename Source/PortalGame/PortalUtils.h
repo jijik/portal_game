@@ -29,6 +29,7 @@ using Array6 = std::array<T, 6>;
 
 //========================================================================
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
+#define print_frame(text, dt) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, dt, FColor::White,text)
 
 //========================================================================
 template<typename T>
