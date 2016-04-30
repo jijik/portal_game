@@ -6,6 +6,7 @@
 #include "HexTileActor.generated.h"
 
 class ABarrierActor;
+class APlatformActor;
 
 UCLASS()
 class PORTALGAME_API AHexTileActor : public AStaticMeshActor
@@ -30,6 +31,11 @@ public:
 	bool						HasBarrierAt(HexDir id);
 	ABarrierActor*	GetBarrierAt(HexDir id);
 
+	void						PlacePlatform(APlatformActor& p);
+	void						RemovePlatform();
+	bool						HasPlatform();
+	APlatformActor* GetPlatform();
+
 	void						Save(std::ofstream& stream);
 	void						Load(std::ifstream& stream);
 
@@ -38,4 +44,5 @@ private:
 	unsigned								m_CurrentModelId = 0;
 
 	Array6<ABarrierActor*>	m_NeighborBarriers;
+	APlatformActor*					m_Platform = nullptr;
 };

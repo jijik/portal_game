@@ -28,6 +28,7 @@ public:
 	void					Deselect();
 	void					Expand(const S_HexCoordinates& dir);
 	void					SelectBarrier(ABarrierActor* ba);
+	void					SelectPlatform(APlatformActor* pa);
 	void					ClearAll();
 	void					SaveMap(const FString& name);
 	void					LoadMap(const FString& name);
@@ -40,6 +41,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	TArray<UStaticMesh*>	AvailableBarriers;
+
+	UPROPERTY(EditAnywhere)
+	TArray<UStaticMesh*>	AvailablePlatforms;
 
 	AHexTileActor*				m_SelectedHexTile;
 
@@ -58,6 +62,9 @@ public:
 	ABarrierActor*	m_CurrentBarrier = nullptr; //during placing
 	ABarrierActor*	m_SelectedBarrier = nullptr;
 
+	APlatformActor*	m_CurrentPlatform = nullptr; //during placing
+	APlatformActor*	m_SelectedPlatform = nullptr;
+
 private:
 	enum InputMode
 	{
@@ -71,7 +78,7 @@ private:
 	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Game" };
 
 	void					DeleteTile();
-	void					UnlinkBarriersFromTile(AHexTileActor& hexTile);
+	void					UnlinkAllFromTile(AHexTileActor& hexTile);
 
 	void					ExpandUp();
 	void					HandleSelectionMaterial(AHexTileActor* hexTile);
@@ -103,4 +110,5 @@ private:
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;
 	std::set<ABarrierActor*> m_AllBarriers;
+	std::set<APlatformActor*> m_AllPlatforms;
 };

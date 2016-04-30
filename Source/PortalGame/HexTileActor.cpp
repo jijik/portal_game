@@ -3,6 +3,7 @@
 #include "PortalGame.h"
 #include "PortalUtils.h"
 #include "BarrierActor.h"
+#include "PlatformActor.h"
 #include "HexEditorActor.h"
 #include "HexTileActor.h"
 
@@ -104,6 +105,32 @@ ABarrierActor* AHexTileActor::GetBarrierAt(HexDir id)
 		return nullptr;
 	}
 	return m_NeighborBarriers[id];
+}
+
+//========================================================================
+void AHexTileActor::PlacePlatform(APlatformActor& p)
+{
+	check(!HasPlatform());
+	m_Platform = &p;
+}
+
+//========================================================================
+void AHexTileActor::RemovePlatform()
+{
+	check(HasPlatform());
+	m_Platform = nullptr;
+}
+
+//========================================================================
+bool AHexTileActor::HasPlatform()
+{
+	return m_Platform != nullptr;
+}
+
+//========================================================================
+APlatformActor* AHexTileActor::GetPlatform()
+{
+	return m_Platform;
 }
 
 //========================================================================

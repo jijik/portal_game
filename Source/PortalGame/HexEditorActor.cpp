@@ -3,6 +3,7 @@
 #include "PortalGame.h"
 #include "HexEditorActor.h"
 #include "BarrierActor.h"
+#include "PlatformActor.h"
 #include "Dude.h"
 #include "HexGame.h"
 #include "ExpandArrowComponent.h"
@@ -106,6 +107,8 @@ void AHexEditorActor::RegisterRegisterBarriersBinding()
 //========================================================================
 void AHexEditorActor::RegisterRegisterPlatformsBinding()
 {
+	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
+	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
@@ -131,6 +134,7 @@ void AHexEditorActor::Tick(float DeltaTime)
 	print_frame(InputModeStr[m_InputType].c_str(), DeltaTime);
 
 	UpdateBarrierPlacing();
+	UpdatePlatformPlacing();
 }
 
 //========================================================================
@@ -143,6 +147,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Barriers)
 	{
 		PlaceBarrier();
+	}
+	else if (m_InputType == InputMode::Platforms)
+	{
+		PlacePlatform();
 	}
 }
 
@@ -157,6 +165,7 @@ void AHexEditorActor::SelectTile(AHexTileActor* hexTile)
 	if (hexTile)
 	{
 		SelectBarrier(nullptr);
+		SelectPlatform(nullptr);
 	}
 }
 
@@ -176,6 +185,7 @@ void AHexEditorActor::Deselect()
 
 	DeselectTile();
 	SelectBarrier(nullptr);
+	SelectPlatform(nullptr);
 }
 
 //========================================================================
@@ -273,9 +283,8 @@ void AHexEditorActor::ExpandUp()
 //========================================================================
 void AHexEditorActor::DeleteTile()
 {
-	check(m_InputType == InputMode::Expanding);
-
 	DeleteBarrier();
+	DeletePlatform();
 
 	if (m_SelectedHexTile == nullptr)
 	{
@@ -292,7 +301,7 @@ void AHexEditorActor::DeleteTile()
 
 	auto* toDestroy = m_SelectedHexTile;
 
-	UnlinkBarriersFromTile(*m_SelectedHexTile);
+	UnlinkAllFromTile(*m_SelectedHexTile);
 
 	DeselectTile();
 	GetWorld()->DestroyActor(toDestroy);
@@ -300,7 +309,7 @@ void AHexEditorActor::DeleteTile()
 }
 
 //========================================================================
-void AHexEditorActor::UnlinkBarriersFromTile(AHexTileActor& hexTile)
+void AHexEditorActor::UnlinkAllFromTile(AHexTileActor& hexTile)
 {
 	for (HexDir i = 0; i < 6; ++i)
 	{
@@ -311,9 +320,18 @@ void AHexEditorActor::UnlinkBarriersFromTile(AHexTileActor& hexTile)
 			if (orphan)
 			{
 				GetWorld()->DestroyActor(barrier);
+				m_AllBarriers.erase(barrier);
 			}
 			hexTile.RemoveBarrierAt(i);
 		}
+	}
+
+	auto* platform = hexTile.GetPlatform();
+	if (platform)
+	{
+		hexTile.RemovePlatform();
+		GetWorld()->DestroyActor(platform);
+		m_AllPlatforms.erase(platform);
 	}
 }
 
@@ -338,25 +356,81 @@ void AHexEditorActor::DeleteBarrier()
 //========================================================================
 void AHexEditorActor::CreatePlatformForPlacing()
 {
-
+	check(m_CurrentPlatform == nullptr);
+	m_CurrentPlatform = GetWorld()->SpawnActor<APlatformActor>();
+	m_CurrentPlatform->Init();
 }
 
 //========================================================================
 void AHexEditorActor::UpdatePlatformPlacing()
 {
-
+	if (m_CurrentPlatform)
+	{
+		check(m_InputType == InputMode::Platforms);
+		
+		Raycast<AHexTileActor>(this,
+			[&](auto& resultActor, auto& traceResult) 
+			{
+				auto& coords = resultActor->GetCoordinates();
+				auto tilePos = m_Grid.GetPosition(coords);
+				
+				m_CurrentPlatform->SetActorLocation(tilePos);
+				m_CurrentPlatform->SetOwningTileBeforePlace(resultActor);
+			},
+			[&]()
+			{
+				m_CurrentPlatform->SetOwningTileBeforePlace(nullptr);
+			});
+	}
 }
 
 //========================================================================
 void AHexEditorActor::PlacePlatform(bool createAnother /*= true*/)
 {
+	if (!m_CurrentPlatform->IsReadyToPlace())
+	{
+		return;
+	}
 
+	auto* owner = m_CurrentPlatform->GetOwningTileBeforePlace();
+	check(owner);
+
+	if (owner->HasPlatform())
+	{
+		return;
+	}
+
+	owner->PlacePlatform(*m_CurrentPlatform);
+	m_CurrentPlatform->Place(*owner);
+
+	m_AllPlatforms.insert(m_CurrentPlatform);
+	m_CurrentPlatform = nullptr; //leave it to live it's life
+
+	if (createAnother)
+	{
+		CreatePlatformForPlacing();
+	}
+
+	print("Platform placed...");
 }
 
 //========================================================================
 void AHexEditorActor::DeletePlatform()
 {
+	if (m_SelectedPlatform == nullptr)
+	{
+		return;
+	}
 
+	check(m_SelectedHexTile == nullptr);
+
+	m_SelectedPlatform->UnlinkPlatformFromOwningTile();
+
+	GetWorld()->DestroyActor(m_SelectedPlatform);
+	
+	m_AllPlatforms.erase(m_SelectedPlatform);
+
+	m_SelectedPlatform = nullptr;
 }
 
 //========================================================================
@@ -379,6 +453,11 @@ void AHexEditorActor::CycleModel()
 	{
 		check(m_CurrentBarrier);
 		m_CurrentBarrier->CycleModel();
+	}
+	else if (m_InputType == InputMode::Platforms)
+	{
+		check(m_CurrentPlatform);
+		m_CurrentPlatform->CycleModel();
 	}
 }
 
@@ -403,16 +482,26 @@ void AHexEditorActor::CycleInputMode()
 //========================================================================
 void AHexEditorActor::ChangeInputMode(InputMode to)
 {
-	if (m_InputType == InputMode::Barriers) 
+	if (m_InputType == InputMode::Barriers)
 	{
 		check(m_CurrentBarrier);
 		GetWorld()->DestroyActor(m_CurrentBarrier);
 		m_CurrentBarrier = nullptr;
 	}
+	else if (m_InputType == InputMode::Platforms)
+	{
+		check(m_CurrentPlatform);
+		GetWorld()->DestroyActor(m_CurrentPlatform);
+		m_CurrentPlatform = nullptr;
+	}
 
 	if (to == InputMode::Barriers)
 	{
 		CreateBarrierForPlacing();
+	}
+	else if (to == InputMode::Platforms)
+	{
+		CreatePlatformForPlacing();
 	}
 
 	m_InputType = to;
@@ -545,6 +634,34 @@ void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 }
 
 //========================================================================
+void AHexEditorActor::SelectPlatform(class APlatformActor* pa)
+{
+	if (m_InputType != InputMode::Expanding)
+	{
+		return;
+	}
+
+	if (pa)
+	{
+		DeselectTile();
+	}
+
+	check(m_CurrentPlatform == nullptr);
+
+	if (m_SelectedPlatform)
+	{
+		m_SelectedPlatform->SetSelectedMaterial(false);
+	}
+
+	m_SelectedPlatform = pa;
+
+	if (m_SelectedPlatform)
+	{
+		m_SelectedPlatform->SetSelectedMaterial(true);
+	}
+}
+
+//========================================================================
 void AHexEditorActor::ClearAll()
 {
 	std::vector<AHexTileActor*> toDelete;
@@ -566,7 +683,7 @@ void AHexEditorActor::ClearAll()
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
-	UnlinkBarriersFromTile(*element);
+	UnlinkAllFromTile(*element);
 }
 
 //========================================================================
@@ -587,6 +704,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 	for (auto* barrier : m_AllBarriers)
 	{
 		barrier->Save(file);
+	}
+
+	binary_write(file, (unsigned)m_AllPlatforms.size());
+	for (auto* platform : m_AllPlatforms)
+	{
+		platform->Save(file);
 	}
 
 	file.close();
@@ -620,6 +743,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 		CreateBarrierForPlacing();
 		m_CurrentBarrier->Load(file);
 		PlaceBarrier(false);
+	}
+
+	binary_read(file, count); //platforms
+	for (unsigned i = 0; i < count; ++i)
+	{
+		CreatePlatformForPlacing();
+		m_CurrentPlatform->Load(file);
+		PlacePlatform(false);
 	}
 
 	file.close();
