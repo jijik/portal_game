@@ -4,3 +4,5 @@
 #include "PortalUtils.h"
 
 class AHexEditorActor* gHexEditor = nullptr;
+
+class AHexGame* gHexGame = nullptr;

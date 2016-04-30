@@ -532,6 +532,12 @@ void AHexEditorActor::LoadMap(const FString& name)
 	}
 
 	file.close();
+
+	UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+	if (NavSys)
+	{
+		NavSys->Build();
+	}
 }
 
 //========================================================================

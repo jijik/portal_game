@@ -9,6 +9,10 @@
 #include "Runtime/Slate/Public/Framework/Notifications/NotificationManager.h"
 
 //========================================================================
+extern class AHexEditorActor* gHexEditor;
+extern class AHexGame* gHexGame;
+
+//========================================================================
 template <class T>
 inline void hash_combine(std::size_t& seed, const T& v)
 {
@@ -22,9 +26,6 @@ using Array6 = std::array<T, 6>;
 
 //========================================================================
 #define Cont(container) std::begin(container), std::end(container)
-
-//========================================================================
-extern class AHexEditorActor* gHexEditor;
 
 //========================================================================
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
