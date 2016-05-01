@@ -36,6 +36,10 @@ public:
 	bool						UnlinkTileFomBarrier(AHexTileActor& tile); // returns if left orphan
 	void						UnlinkBarrierFromNeighborTiles();
 
+	void						On();
+	void						Off();
+	bool						m_On = true;
+
 	UFUNCTION()
 	void						OnClick(UPrimitiveComponent*pc);
 	void						SetSelectedMaterial(bool b);
@@ -43,10 +47,17 @@ public:
 	void						Save(std::ofstream& file);
 	void						Load(std::ifstream& file);
 
+	unsigned				GetId() { return m_Id; }
+
 private:
 	unsigned																	m_CurrentModelId = 0;
 	struct S_NeighborInfo { AHexTileActor* neighbor; HexDir slotAtNeighbor; };
 	std::pair<S_NeighborInfo, S_NeighborInfo> m_Neighbors; //first is always valid
 	AHexTileActor*														m_OwningTileBeforePlace = nullptr;
 	HexDir																		m_OwningSectorBeforePlace = InvalidHexDir;
+
+	UStaticMesh*															m_EmptyBarrierMesh;
+
+	unsigned																	m_Id;
+	static unsigned														IDProvider;
 };

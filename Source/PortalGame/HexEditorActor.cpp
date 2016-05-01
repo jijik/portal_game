@@ -135,6 +135,11 @@ void AHexEditorActor::Tick(float DeltaTime)
 
 	UpdateBarrierPlacing();
 	UpdatePlatformPlacing();
+
+	if (m_AttachingPlatform)
+	{
+		print_frame("Click on the platform target", DeltaTime);
+	}
 }
 
 //========================================================================
@@ -165,27 +170,29 @@ void AHexEditorActor::SelectTile(AHexTileActor* hexTile)
 	if (hexTile)
 	{
 		SelectBarrier(nullptr);
-		SelectPlatform(nullptr);
 	}
+	SelectPlatform(nullptr);
 }
 
 //========================================================================
 void AHexEditorActor::DeselectTile()
 {
 	SelectTile(nullptr);
+
+	m_AttachingPlatform = false;
 }
 
 //========================================================================
 void AHexEditorActor::Deselect()
 {
+	DeselectTile();
+	SelectBarrier(nullptr);
+	SelectPlatform(nullptr);
+	
 	if (m_InputType != InputMode::Expanding)
 	{
 		ChangeInputMode(InputMode::None);
 	}
-
-	DeselectTile();
-	SelectBarrier(nullptr);
-	SelectPlatform(nullptr);
 }
 
 //========================================================================
@@ -350,6 +357,14 @@ void AHexEditorActor::DeleteBarrier()
 
 	m_AllBarriers.erase(m_SelectedBarrier);
 
+	for (auto* platform : m_AllPlatforms)
+	{
+		if (platform->GetTarget() == m_SelectedBarrier)
+		{
+			platform->SetTarget(nullptr);
+		}
+	}
+
 	m_SelectedBarrier = nullptr;
 }
 
@@ -385,7 +400,7 @@ void AHexEditorActor::UpdatePlatformPlacing()
 }
 
 //========================================================================
-void AHexEditorActor::PlacePlatform(bool createAnother /*= true*/)
+void AHexEditorActor::PlacePlatform(bool inGame)
 {
 	if (!m_CurrentPlatform->IsReadyToPlace())
 	{
@@ -404,11 +419,15 @@ void AHexEditorActor::PlacePlatform(bool createAnother /*= true*/)
 	m_CurrentPlatform->Place(*owner);
 
 	m_AllPlatforms.insert(m_CurrentPlatform);
+
+	auto* placed = m_CurrentPlatform;
+
 	m_CurrentPlatform = nullptr; //leave it to live it's life
 
-	if (createAnother)
+	if (inGame)
 	{
-		CreatePlatformForPlacing();
+		m_AttachingPlatform = true;
+		SelectPlatform(placed);
 	}
 
 	print("Platform placed...");
@@ -480,7 +499,7 @@ void AHexEditorActor::CycleInputMode()
 }
 
 //========================================================================
-void AHexEditorActor::ChangeInputMode(InputMode to)
+void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 {
 	if (m_InputType == InputMode::Barriers)
 	{
@@ -490,9 +509,11 @@ void AHexEditorActor::ChangeInputMode(InputMode to)
 	}
 	else if (m_InputType == InputMode::Platforms)
 	{
-		check(m_CurrentPlatform);
-		GetWorld()->DestroyActor(m_CurrentPlatform);
-		m_CurrentPlatform = nullptr;
+		if (m_CurrentPlatform)
+		{
+			GetWorld()->DestroyActor(m_CurrentPlatform);
+			m_CurrentPlatform = nullptr;
+		}
 	}
 
 	if (to == InputMode::Barriers)
@@ -501,11 +522,19 @@ void AHexEditorActor::ChangeInputMode(InputMode to)
 	}
 	else if (to == InputMode::Platforms)
 	{
-		CreatePlatformForPlacing();
+		if (!m_AttachingPlatform)
+		{
+			CreatePlatformForPlacing();
+		}
 	}
 
 	m_InputType = to;
-	DeselectTile();
+
+	if (deselect)
+	{
+		DeselectTile();
+	}
+
 	SwitchBindings(to);
 }
 
@@ -608,6 +637,15 @@ void AHexEditorActor::PlaceBarrier(bool createAnother)
 //========================================================================
 void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 {
+	if (m_InputType == InputMode::Platforms && m_AttachingPlatform)
+	{
+		check(m_SelectedPlatform && ba);
+		m_SelectedPlatform->SetTarget(ba);
+		DeselectTile();
+		m_AttachingPlatform = false;
+		CreatePlatformForPlacing();
+	}
+
 	if (m_InputType != InputMode::Expanding)
 	{
 		return;
@@ -636,9 +674,16 @@ void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 //========================================================================
 void AHexEditorActor::SelectPlatform(class APlatformActor* pa)
 {
-	if (m_InputType != InputMode::Expanding)
+	if (!(m_InputType == InputMode::Expanding ||
+				m_InputType == InputMode::Platforms && m_AttachingPlatform))
 	{
 		return;
+	}
+
+	if (pa && !pa->GetTarget())
+	{
+		m_AttachingPlatform = true;
+		ChangeInputMode(InputMode::Platforms, false);
 	}
 
 	if (pa)
@@ -658,6 +703,11 @@ void AHexEditorActor::SelectPlatform(class APlatformActor* pa)
 	if (m_SelectedPlatform)
 	{
 		m_SelectedPlatform->SetSelectedMaterial(true);
+	}
+
+	if (m_SelectedPlatform && !m_SelectedPlatform->GetTarget())
+	{
+		m_AttachingPlatform = true;
 	}
 }
 

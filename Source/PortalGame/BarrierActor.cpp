@@ -5,10 +5,18 @@
 #include "HexEditorActor.h"
 
 //========================================================================
+unsigned ABarrierActor::IDProvider = 1;
+
+//========================================================================
 ABarrierActor::ABarrierActor()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	m_Neighbors.first.neighbor = m_Neighbors.second.neighbor = nullptr;
+
+	m_Id = IDProvider++;
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Obj(TEXT("StaticMesh'/Game/Models/WallEmpty.WallEmpty'"));
+	m_EmptyBarrierMesh = Obj.Object;
 }
 
 //========================================================================
@@ -22,6 +30,37 @@ void ABarrierActor::Init()
 	meshComp->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
 	AttachRootComponentToActor(gHexEditor);
+}
+
+//========================================================================
+void ABarrierActor::On()
+{
+	if (!m_On)
+	{
+		GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
+		m_On = true;
+		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+		if (NavSys)
+		{
+			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All);
+		}
+	}
+}
+
+//========================================================================
+void ABarrierActor::Off()
+{
+	if (m_On)
+	{
+		GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
+		GetStaticMeshComponent()->setci
+		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+		if (NavSys)
+		{
+			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All);
+		}
+		m_On = false;
+	}
 }
 
 //========================================================================
@@ -136,6 +175,8 @@ void ABarrierActor::SetSelectedMaterial(bool b)
 //========================================================================
 void ABarrierActor::Save(std::ofstream& file)
 {
+	binary_write(file, m_Id);
+
 	binary_write(file, m_CurrentModelId);
 	
 	m_Neighbors.first.neighbor->GetCoordinates().Save(file); //id
@@ -148,6 +189,8 @@ void ABarrierActor::Save(std::ofstream& file)
 //========================================================================
 void ABarrierActor::Load(std::ifstream& file)
 {
+	binary_read(file, m_Id);
+
 	binary_read(file, m_CurrentModelId);
 
 	//will be placed later

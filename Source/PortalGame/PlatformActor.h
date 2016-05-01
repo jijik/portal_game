@@ -8,12 +8,15 @@
 
 class APlatformActor;
 class AHexTileActor;
+class ABarrierActor;
 
 UCLASS()
 class PORTALGAME_API APlatformActor : public AStaticMeshActor
 {
 	GENERATED_BODY()
 public:
+	APlatformActor();
+
 	void						Init();
 
 	virtual void		BeginPlay() override;
@@ -30,6 +33,9 @@ public:
 
 	void						UnlinkPlatformFromOwningTile();
 
+	void						SetTarget(ABarrierActor*);
+	ABarrierActor*	GetTarget();
+
 	UFUNCTION()
 	void						OnClick(UPrimitiveComponent*pc);
 	void						SetSelectedMaterial(bool b);
@@ -41,4 +47,5 @@ private:
 	unsigned																	m_CurrentModelId = 0;
 	AHexTileActor*														m_OwningTileBeforePlace = nullptr;
 	AHexTileActor*														m_OwnerTile = nullptr;
+	ABarrierActor*														m_Target = nullptr;
 };

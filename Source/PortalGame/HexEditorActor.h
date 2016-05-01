@@ -64,6 +64,10 @@ public:
 
 	APlatformActor*	m_CurrentPlatform = nullptr; //during placing
 	APlatformActor*	m_SelectedPlatform = nullptr;
+	bool						m_AttachingPlatform = false;
+
+	std::set<ABarrierActor*> m_AllBarriers;
+	std::set<APlatformActor*> m_AllPlatforms;
 
 private:
 	enum InputMode
@@ -86,7 +90,7 @@ private:
 	void					RotateModel();
 	void					ShowExpansionArrows();
 	void					CycleInputMode();
-	void					ChangeInputMode(InputMode to);
+	void					ChangeInputMode(InputMode to, bool deselect = true);
 
 	void					CreateBarrierForPlacing();
 	void					UpdateBarrierPlacing();
@@ -96,7 +100,7 @@ private:
 
 	void					CreatePlatformForPlacing();
 	void					UpdatePlatformPlacing();
-	void					PlacePlatform(bool createAnother = true);
+	void					PlacePlatform(bool inGame = true);
 	void					DeletePlatform();
 
 	void					RegisterRegisterNoneBinding();
@@ -109,6 +113,5 @@ private:
 
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;
-	std::set<ABarrierActor*> m_AllBarriers;
-	std::set<APlatformActor*> m_AllPlatforms;
+
 };

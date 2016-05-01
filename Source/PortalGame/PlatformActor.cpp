@@ -1,8 +1,18 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PortalGame.h"
+#include "HexGame.h"
+#include "Dude.h"
+#include "PortalUtils.h"
 #include "PlatformActor.h"
 #include "HexEditorActor.h"
+#include "BarrierActor.h"
+
+//========================================================================
+APlatformActor::APlatformActor()
+{
+	PrimaryActorTick.bCanEverTick = true;
+}
 
 //========================================================================
 void APlatformActor::Init()
@@ -27,6 +37,20 @@ void APlatformActor::BeginPlay()
 void APlatformActor::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (m_Target)
+	{
+		DrawDebugLine(GetWorld(), GetActorLocation(), m_Target->GetActorLocation() + FVector(0,0,50), FColor::Yellow, false, -1.f, 0, 1.0f);
+
+		if (FVector::DistSquared(gHexGame->Dude->GetActorLocation(), GetActorLocation()) > 40 * 40)
+		{
+			m_Target->On();
+		}
+		else
+		{
+			m_Target->Off();
+		}
+	}
 }
 
 //========================================================================
@@ -70,6 +94,18 @@ void APlatformActor::UnlinkPlatformFromOwningTile()
 }
 
 //========================================================================
+void APlatformActor::SetTarget(ABarrierActor* a)
+{
+	m_Target = a;
+}
+
+//========================================================================
+ABarrierActor* APlatformActor::GetTarget()
+{
+	return m_Target;
+}
+
+//========================================================================
 void APlatformActor::OnClick(UPrimitiveComponent*pc)
 {
 	gHexEditor->SelectPlatform(this);
@@ -96,6 +132,14 @@ void APlatformActor::Save(std::ofstream& file)
 	m_OwnerTile->GetCoordinates().Save(file); //id
 
 	binary_write(file, GetActorLocation());
+
+	bool hasTarget = m_Target != nullptr;
+	binary_write(file, hasTarget);
+
+	if (hasTarget)
+	{
+		binary_write(file, m_Target->GetId());
+	}
 }
 
 //========================================================================
@@ -115,4 +159,18 @@ void APlatformActor::Load(std::ifstream& file)
 	FVector pos;
 	binary_read(file, pos);
 	SetActorLocation(pos);
+
+	bool hasTarget;
+	binary_read(file, hasTarget);
+
+	if (hasTarget)
+	{
+		unsigned id;
+		binary_read(file, id);
+
+		auto& cont = gHexEditor->m_AllBarriers;
+		auto it = std::find_if(cont.begin(), cont.end(), [&](ABarrierActor* a) { return a->GetId() == id; });
+		check(it != cont.end());
+		m_Target = *it;
+	}
 }
