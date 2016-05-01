@@ -2,6 +2,7 @@
 
 #include "PortalGame.h"
 #include "Dude.h"
+#include "CompanionActor.h"
 #include "AIController.h"
 #include "HexGame.h"
 #include "PortalUtils.h"
@@ -37,3 +38,13 @@ void ADude::Move()
 		controller->MoveToLocation(TraceResult.Location);
 	}
 }
+
+//========================================================================
+void ADude::Pick(ACompanionActor* companion)
+{
+	m_Companion = companion;
+
+	companion->AttachRootComponentToActor(this);
+}
+
+//========================================================================

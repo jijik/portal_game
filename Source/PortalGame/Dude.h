@@ -5,6 +5,8 @@
 #include "GameFramework/Pawn.h"
 #include "Dude.generated.h"
 
+class ACompanionActor;
+
 UCLASS()
 class PORTALGAME_API ADude : public ADefaultPawn
 {
@@ -17,4 +19,8 @@ public:
 	virtual void	Tick( float DeltaSeconds ) override;
 
 	void					Move();
+	void					Pick(ACompanionActor* companion);
+
+private:
+	ACompanionActor*		m_Companion = nullptr;
 };

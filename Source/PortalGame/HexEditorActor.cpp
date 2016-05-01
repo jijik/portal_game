@@ -2,6 +2,7 @@
 
 #include "PortalGame.h"
 #include "HexEditorActor.h"
+#include "CompanionActor.h"
 #include "BarrierActor.h"
 #include "PlatformActor.h"
 #include "Dude.h"
@@ -70,23 +71,24 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	UnregisterAllBindings();
 	switch (to)
 	{
-	case AHexEditorActor::None:				RegisterRegisterNoneBinding();			break;
-	case AHexEditorActor::Expanding:	RegisterRegisterExpandingBinding();	break;
-	case AHexEditorActor::Barriers:		RegisterRegisterBarriersBinding();	break;
-	case AHexEditorActor::Platforms:	RegisterRegisterPlatformsBinding();	break;
-	case AHexEditorActor::Game:				RegisterRegisterGameBinding();			break;
+	case AHexEditorActor::None:				RegisterNoneBinding();			break;
+	case AHexEditorActor::Expanding:	RegisterExpandingBinding();	break;
+	case AHexEditorActor::Barriers:		RegisterBarriersBinding();	break;
+	case AHexEditorActor::Platforms:	RegisterPlatformsBinding();	break;
+	case AHexEditorActor::Companions:	RegisterCompanionsBinding();	break;
+	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
 }
 
 //========================================================================
-void AHexEditorActor::RegisterRegisterNoneBinding()
+void AHexEditorActor::RegisterNoneBinding()
 {
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
 //========================================================================
-void AHexEditorActor::RegisterRegisterExpandingBinding()
+void AHexEditorActor::RegisterExpandingBinding()
 {
 	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteTile);
@@ -97,7 +99,7 @@ void AHexEditorActor::RegisterRegisterExpandingBinding()
 }
 
 //========================================================================
-void AHexEditorActor::RegisterRegisterBarriersBinding()
+void AHexEditorActor::RegisterBarriersBinding()
 {
 	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
@@ -105,7 +107,7 @@ void AHexEditorActor::RegisterRegisterBarriersBinding()
 }
 
 //========================================================================
-void AHexEditorActor::RegisterRegisterPlatformsBinding()
+void AHexEditorActor::RegisterPlatformsBinding()
 {
 	InputComponent->BindAction("Deselect", IE_Released, this, &AHexEditorActor::Deselect);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::CycleModel);
@@ -113,7 +115,14 @@ void AHexEditorActor::RegisterRegisterPlatformsBinding()
 }
 
 //========================================================================
-void AHexEditorActor::RegisterRegisterGameBinding()
+void AHexEditorActor::RegisterCompanionsBinding()
+{
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllCompanions);
+ 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterGameBinding()
 {
 	InputComponent->BindAction("Move", IE_Released, gHexGame->Dude, &ADude::Move);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
@@ -156,6 +165,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Platforms)
 	{
 		PlacePlatform();
+	}
+	else if (m_InputType == InputMode::Companions)
+	{
+		PlaceCompanion();
 	}
 }
 
@@ -635,6 +648,28 @@ void AHexEditorActor::PlaceBarrier(bool createAnother)
 }
 
 //========================================================================
+void AHexEditorActor::PlaceCompanion()
+{
+	Raycast<AHexTileActor>(this,
+		[&](auto& resultActor, auto& traceResult)
+		{
+			auto* companion = GetWorld()->SpawnActor<ACompanionActor>();
+			m_AllCompanions.insert(companion);
+			companion->Init(traceResult.Location);
+		});
+}
+
+//========================================================================
+void AHexEditorActor::DeleteAllCompanions()
+{
+	for (auto* c : m_AllCompanions)
+	{
+		GetWorld()->DestroyActor(c);
+	}
+	m_AllCompanions.clear();
+}
+
+//========================================================================
 void AHexEditorActor::SelectBarrier(class ABarrierActor* ba)
 {
 	if (m_InputType == InputMode::Platforms && m_AttachingPlatform)
@@ -762,6 +797,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 		platform->Save(file);
 	}
 
+	binary_write(file, (unsigned)m_AllCompanions.size());
+	for (auto* companion : m_AllCompanions)
+	{
+		companion->Save(file);
+	}
+
 	file.close();
 }
 
@@ -801,6 +842,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 		CreatePlatformForPlacing();
 		m_CurrentPlatform->Load(file);
 		PlacePlatform(false);
+	}
+
+	binary_read(file, count); //companions
+	for (unsigned i = 0; i < count; ++i)
+	{
+		auto* companion = GetWorld()->SpawnActor<ACompanionActor>();
+		m_AllCompanions.insert(companion);
+		companion->Load(file);
 	}
 
 	file.close();

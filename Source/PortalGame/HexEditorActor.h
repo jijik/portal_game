@@ -10,6 +10,7 @@
 #include "HexEditorActor.generated.h"
 
 class ABarrierActor;
+class ACompanionActor;
 
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
@@ -68,6 +69,7 @@ public:
 
 	std::set<ABarrierActor*> m_AllBarriers;
 	std::set<APlatformActor*> m_AllPlatforms;
+	std::set<ACompanionActor*> m_AllCompanions;
 
 private:
 	enum InputMode
@@ -76,10 +78,11 @@ private:
 		Expanding,
 		Barriers,
 		Platforms,
+		Companions,
 		Game,
 		TOTAL
 	};
-	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Game" };
+	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Companions", "Game" };
 
 	void					DeleteTile();
 	void					UnlinkAllFromTile(AHexTileActor& hexTile);
@@ -103,11 +106,15 @@ private:
 	void					PlacePlatform(bool inGame = true);
 	void					DeletePlatform();
 
-	void					RegisterRegisterNoneBinding();
-	void					RegisterRegisterExpandingBinding();
-	void					RegisterRegisterBarriersBinding();
-	void					RegisterRegisterPlatformsBinding();
-	void					RegisterRegisterGameBinding();
+	void					PlaceCompanion();
+	void					DeleteAllCompanions();
+
+	void					RegisterNoneBinding();
+	void					RegisterExpandingBinding();
+	void					RegisterBarriersBinding();
+	void					RegisterPlatformsBinding();
+	void					RegisterCompanionsBinding();
+	void					RegisterGameBinding();
 	void					UnregisterAllBindings();
 	void					SwitchBindings(InputMode to);
 
