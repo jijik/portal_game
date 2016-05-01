@@ -402,7 +402,7 @@ void AHexEditorActor::UpdatePlatformPlacing()
 //========================================================================
 void AHexEditorActor::PlacePlatform(bool inGame)
 {
-	if (!m_CurrentPlatform->IsReadyToPlace())
+	if(m_AttachingPlatform || !m_CurrentPlatform->IsReadyToPlace())
 	{
 		return;
 	}

@@ -37,13 +37,16 @@ void ABarrierActor::On()
 {
 	if (!m_On)
 	{
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
 		m_On = true;
 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
 		if (NavSys)
 		{
-			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All);
+			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
 		}
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
 	}
 }
 
@@ -52,13 +55,17 @@ void ABarrierActor::Off()
 {
 	if (m_On)
 	{
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
 		GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
 		if (NavSys)
 		{
-			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All);
+			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
 		}
 		m_On = false;
+
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 }
 

@@ -42,11 +42,12 @@ void APlatformActor::Tick(float DeltaSeconds)
 	{
 		DrawDebugLine(GetWorld(), GetActorLocation(), m_Target->GetActorLocation() + FVector(0,0,50), FColor::Yellow, false, -1.f, 0, 1.0f);
 
-		if (FVector::DistSquared(gHexGame->Dude->GetActorLocation(), GetActorLocation()) > 40 * 40)
+		auto dist = FVector::DistSquared(gHexGame->Dude->GetActorLocation(), GetActorLocation());
+		if (dist > 40 * 40)
 		{
 			m_Target->On();
 		}
-		else
+		else if (dist < 30 * 30)
 		{
 			m_Target->Off();
 		}
