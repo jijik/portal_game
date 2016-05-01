@@ -53,7 +53,6 @@ void ABarrierActor::Off()
 	if (m_On)
 	{
 		GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
-		GetStaticMeshComponent()->setci
 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
 		if (NavSys)
 		{
