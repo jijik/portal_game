@@ -44,6 +44,10 @@ void ADude::Pick(ACompanionActor* companion)
 {
 	m_Companion = companion;
 
+ 	m_Companion->SetActorRelativeLocation(FVector(0, 0, 100));
+ 	m_Companion->SetActorRelativeScale3D(FVector(1, 1, 1));
+ 	m_Companion->SetActorRelativeRotation(FRotator(0, 0, 0));
+
 	companion->AttachRootComponentToActor(this);
 }
 

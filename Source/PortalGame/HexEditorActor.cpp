@@ -126,6 +126,7 @@ void AHexEditorActor::RegisterGameBinding()
 {
 	InputComponent->BindAction("Move", IE_Released, gHexGame->Dude, &ADude::Move);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+	InputComponent->BindAction("Action", IE_Pressed, this, &AHexEditorActor::ActionClick);
 }
 
 //========================================================================
@@ -554,6 +555,20 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 	}
 
 	SwitchBindings(to);
+}
+
+//========================================================================
+void AHexEditorActor::ActionClick()
+{
+	Raycast<AActor>(this, 
+		[&](auto& resultActor, auto& traceResult)
+		{
+			auto* companion = Cast<ACompanionActor>(resultActor);
+			if (companion)
+			{
+				companion->OnClick();
+			}
+		});
 }
 
 //========================================================================

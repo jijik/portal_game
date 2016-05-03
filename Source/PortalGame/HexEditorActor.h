@@ -94,6 +94,7 @@ private:
 	void					ShowExpansionArrows();
 	void					CycleInputMode();
 	void					ChangeInputMode(InputMode to, bool deselect = true);
+	void					ActionClick();
 
 	void					CreateBarrierForPlacing();
 	void					UpdateBarrierPlacing();

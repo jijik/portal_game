@@ -15,8 +15,7 @@ public:
 
 	void						Init(const FVector& pos);
 	
-	UFUNCTION()
-	void						OnClick(UPrimitiveComponent*pc);
+	void						OnClick();
 
 	void						Save(std::ofstream& file);
 	void						Load(std::ifstream& file);

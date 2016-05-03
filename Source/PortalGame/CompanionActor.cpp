@@ -21,18 +21,17 @@ void ACompanionActor::Init(const FVector& pos)
 
 	SetActorLocation(pos);
 
-	meshComp->OnClicked.AddDynamic(this, &ACompanionActor::OnClick);
 	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	meshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
 	meshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 }
 
 //========================================================================
-void ACompanionActor::OnClick(UPrimitiveComponent*pc)
+void ACompanionActor::OnClick()
 {
 	auto dudePos = gHexGame->Dude->GetActorLocation();
 
-	if (FVector::Dist(dudePos, GetActorLocation()) < 30)
+	//if (FVector::Dist(dudePos, GetActorLocation()) < 30)
 	{
 		gHexGame->Dude->Pick(this);
 	}
