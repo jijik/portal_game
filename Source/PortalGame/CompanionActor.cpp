@@ -10,20 +10,22 @@ ACompanionActor::ACompanionActor()
 {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Obj(TEXT("StaticMesh'/Game/Models/Companion.Companion'"));
 	m_Mesh = Obj.Object;
+
+	auto* meshComp = GetStaticMeshComponent();
+	meshComp->SetMobility(EComponentMobility::Movable);
+	meshComp->SetStaticMesh(m_Mesh);
+
+	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	meshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	meshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 }
 
 //========================================================================
 void ACompanionActor::Init(const FVector& pos)
 {
 	auto* meshComp = GetStaticMeshComponent();
-	meshComp->SetMobility(EComponentMobility::Movable);
-	meshComp->SetStaticMesh(m_Mesh);
 
 	SetActorLocation(pos);
-
-	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	meshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
-	meshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 }
 
 //========================================================================

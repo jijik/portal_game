@@ -6,6 +6,7 @@
 #include "PortalUtils.h"
 #include "PlatformActor.h"
 #include "HexEditorActor.h"
+#include "CompanionActor.h"
 #include "BarrierActor.h"
 
 //========================================================================
@@ -42,12 +43,23 @@ void APlatformActor::Tick(float DeltaSeconds)
 	{
 		DrawDebugLine(GetWorld(), GetActorLocation(), m_Target->GetActorLocation() + FVector(0,0,50), FColor::Yellow, false, -1.f, 0, 1.0f);
 
-		auto dist = FVector::DistSquared(gHexGame->Dude->GetActorLocation(), GetActorLocation());
-		if (dist > 40 * 40)
+		auto d = 40.0f;
+
+		auto mypos = GetActorLocation();
+
+		bool hasCompanion = std::any_of(Cont(gHexEditor->m_AllCompanions), [&](auto& c) { return FVector::Dist(mypos, c->GetActorLocation()) < d; });
+		if (hasCompanion)
+		{
+			m_Target->Off();
+			return;
+		}
+
+		auto dist = FVector::Dist(gHexGame->Dude->GetActorLocation(), GetActorLocation());
+		if (dist > d)
 		{
 			m_Target->On();
 		}
-		else if (dist < 30 * 30)
+		else /*if (dist < dist-10)*/
 		{
 			m_Target->Off();
 		}

@@ -20,6 +20,7 @@ public:
 
 	void					Move();
 	void					Pick(ACompanionActor* companion);
+	void					Drop();
 
 private:
 	ACompanionActor*		m_Companion = nullptr;

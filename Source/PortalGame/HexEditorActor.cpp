@@ -560,6 +560,8 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 //========================================================================
 void AHexEditorActor::ActionClick()
 {
+	gHexGame->Dude->Drop();
+
 	Raycast<AActor>(this, 
 		[&](auto& resultActor, auto& traceResult)
 		{
@@ -785,6 +787,8 @@ void AHexEditorActor::ClearAll()
 		DeleteTile();
 		toDelete.pop_back();
 	}
+
+	DeleteAllCompanions();
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
