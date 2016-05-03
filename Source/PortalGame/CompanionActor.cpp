@@ -22,7 +22,9 @@ void ACompanionActor::Init(const FVector& pos)
 	SetActorLocation(pos);
 
 	meshComp->OnClicked.AddDynamic(this, &ACompanionActor::OnClick);
-	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	meshComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	meshComp->SetCollisionResponseToChannel(ECC_Camera, ECR_Block);
 }
 
 //========================================================================

@@ -49,7 +49,7 @@ void	Raycast(AActor* actor, HitFunc hitFunc, std::function<void()> noHitFunc = [
 {
 	auto* pc = actor->GetWorld()->GetFirstPlayerController();
 	FHitResult TraceResult(ForceInit);
-	pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_WorldStatic), false, TraceResult);
+	pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_Camera), false, TraceResult);
 	auto* resultActor = Cast<DesiredType>(TraceResult.GetActor());
 	if (resultActor)
 	{

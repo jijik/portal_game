@@ -149,6 +149,11 @@ void AHexEditorActor::Tick(float DeltaTime)
 	{
 		print_frame("Click on the platform target", DeltaTime);
 	}
+
+	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
+		{
+			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
+		});
 }
 
 //========================================================================
