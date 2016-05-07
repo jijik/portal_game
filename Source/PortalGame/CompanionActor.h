@@ -17,6 +17,9 @@ public:
 	
 	void						OnClick();
 
+	virtual void		OnPick() {};
+	virtual void		OnDrop();
+
 	void						Save(std::ofstream& file);
 	void						Load(std::ifstream& file);
 

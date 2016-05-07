@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "HexCoordinates.h"
 #include "GameFramework/Actor.h"
 #include "HexTileActor.generated.h"
 

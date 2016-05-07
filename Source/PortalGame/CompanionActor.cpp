@@ -23,8 +23,6 @@ ACompanionActor::ACompanionActor()
 //========================================================================
 void ACompanionActor::Init(const FVector& pos)
 {
-	auto* meshComp = GetStaticMeshComponent();
-
 	SetActorLocation(pos);
 }
 
@@ -40,17 +38,26 @@ void ACompanionActor::OnClick()
 }
 
 //========================================================================
+void ACompanionActor::OnDrop()
+{
+
+}
+
+//========================================================================
 void ACompanionActor::Save(std::ofstream& file)
 {
 	binary_write(file, GetActorLocation());
+	binary_write(file, GetActorRotation());
 }
 
 //========================================================================
 void ACompanionActor::Load(std::ifstream& file)
 {
 	FVector pos;
+	FRotator rot;
 	binary_read(file, pos);
-	SetActorLocation(pos);
+	binary_read(file, rot);
+	SetActorLocationAndRotation(pos, rot);
 }
 
 //========================================================================

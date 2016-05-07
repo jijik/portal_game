@@ -55,11 +55,7 @@ void APlatformActor::Tick(float DeltaSeconds)
 		}
 
 		auto dist = FVector::Dist(gHexGame->Dude->GetActorLocation(), GetActorLocation());
-		if (dist > d)
-		{
-			m_Target->On();
-		}
-		else /*if (dist < dist-10)*/
+		if (dist < d)
 		{
 			m_Target->Off();
 		}

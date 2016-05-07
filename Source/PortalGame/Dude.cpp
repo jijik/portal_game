@@ -48,12 +48,11 @@ void ADude::Pick(ACompanionActor* companion)
 	}
 
 	m_Companion = companion;
-
  	m_Companion->SetActorRelativeLocation(FVector(0, 0, 100));
  	m_Companion->SetActorRelativeScale3D(FVector(1, 1, 1));
  	m_Companion->SetActorRelativeRotation(FRotator(0, 0, 0));
-
-	companion->AttachRootComponentToActor(this);
+	m_Companion->AttachRootComponentToActor(this);
+	m_Companion->OnPick();
 }
 
 //========================================================================
@@ -66,6 +65,7 @@ void ADude::Drop()
 
 	m_Companion->DetachRootComponentFromParent(false);
 	m_Companion->SetActorLocation(GetActorLocation());
+	m_Companion->OnDrop();
 	m_Companion = nullptr;
 }
 

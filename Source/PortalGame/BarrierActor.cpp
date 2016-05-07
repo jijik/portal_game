@@ -33,40 +33,9 @@ void ABarrierActor::Init()
 }
 
 //========================================================================
-void ABarrierActor::On()
-{
-	if (!m_On)
-	{
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-		GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
-		m_On = true;
-		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
-		if (NavSys)
-		{
-			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
-		}
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-
-	}
-}
-
-//========================================================================
 void ABarrierActor::Off()
 {
-	if (m_On)
-	{
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
-		GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
-		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
-		if (NavSys)
-		{
-			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
-		}
-		m_On = false;
-
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	}
+	m_On = false;
 }
 
 //========================================================================
@@ -79,6 +48,28 @@ void ABarrierActor::BeginPlay()
 void ABarrierActor::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+
+	if (m_On != m_OnImpl)
+	{
+		m_OnImpl = m_On;
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		if (m_On)
+		{
+			GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
+		}
+		else
+		{
+			GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
+		}
+		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+		if (NavSys)
+		{
+			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
+		}
+		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	}
+
+	m_On = true;
 }
 
 //========================================================================

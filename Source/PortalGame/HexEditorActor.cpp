@@ -3,6 +3,7 @@
 #include "PortalGame.h"
 #include "HexEditorActor.h"
 #include "CompanionActor.h"
+#include "BlockerActor.h"
 #include "BarrierActor.h"
 #include "PlatformActor.h"
 #include "Dude.h"
@@ -75,7 +76,8 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	case AHexEditorActor::Expanding:	RegisterExpandingBinding();	break;
 	case AHexEditorActor::Barriers:		RegisterBarriersBinding();	break;
 	case AHexEditorActor::Platforms:	RegisterPlatformsBinding();	break;
-	case AHexEditorActor::Companions:	RegisterCompanionsBinding();	break;
+	case AHexEditorActor::Companions:	RegisterCompanionsBinding();break;
+	case AHexEditorActor::Blockers:		RegisterBlockersBinding();	break;
 	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
@@ -118,7 +120,14 @@ void AHexEditorActor::RegisterPlatformsBinding()
 void AHexEditorActor::RegisterCompanionsBinding()
 {
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllCompanions);
- 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterBlockersBinding()
+{
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllBlockers);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
 //========================================================================
@@ -145,6 +154,7 @@ void AHexEditorActor::Tick(float DeltaTime)
 
 	UpdateBarrierPlacing();
 	UpdatePlatformPlacing();
+	UpdateBlockerPlacing();
 
 	if (m_AttachingPlatform)
 	{
@@ -175,6 +185,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Companions)
 	{
 		PlaceCompanion();
+	}
+	else if (m_InputType == InputMode::Blockers)
+	{
+		PlaceBlocker(hexTile);
 	}
 }
 
@@ -560,6 +574,11 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 //========================================================================
 void AHexEditorActor::ActionClick()
 {
+	if (m_CurrentBlocker)
+	{
+		m_CurrentBlocker->m_Placing = false;
+	}
+
 	gHexGame->Dude->Drop();
 
 	Raycast<AActor>(this, 
@@ -674,11 +693,11 @@ void AHexEditorActor::PlaceCompanion()
 {
 	Raycast<AHexTileActor>(this,
 		[&](auto& resultActor, auto& traceResult)
-		{
-			auto* companion = GetWorld()->SpawnActor<ACompanionActor>();
-			m_AllCompanions.insert(companion);
-			companion->Init(traceResult.Location);
-		});
+	{
+		auto* companion = GetWorld()->SpawnActor<ACompanionActor>();
+		m_AllCompanions.insert(companion);
+		companion->Init(traceResult.Location);
+	});
 }
 
 //========================================================================
@@ -689,6 +708,48 @@ void AHexEditorActor::DeleteAllCompanions()
 		GetWorld()->DestroyActor(c);
 	}
 	m_AllCompanions.clear();
+}
+
+//========================================================================
+void AHexEditorActor::PlaceBlocker(AHexTileActor& hexTile)
+{
+	if (m_CurrentBlocker)
+	{
+		return;
+	}
+
+	Raycast<AHexTileActor>(this,
+		[&](auto& resultActor, auto& traceResult)
+	{
+		auto* blocker = GetWorld()->SpawnActor<ABlockerActor>();
+		m_AllCompanions.insert(blocker);
+		blocker->Init(traceResult.Location);
+		blocker->m_BaseTile = &hexTile;
+		m_CurrentBlocker = blocker;
+	});
+}
+
+//========================================================================
+void AHexEditorActor::DeleteAllBlockers()
+{
+	for (auto* c : m_AllBlockers)
+	{
+		GetWorld()->DestroyActor(c);
+	}
+	m_AllBlockers.clear();
+}
+
+//========================================================================
+void AHexEditorActor::UpdateBlockerPlacing()
+{
+
+}
+
+//========================================================================
+void AHexEditorActor::FinishBlockerPlacing()
+{
+	m_CurrentBlocker->m_Placing = false;
+	m_CurrentBlocker = nullptr;
 }
 
 //========================================================================
@@ -789,6 +850,7 @@ void AHexEditorActor::ClearAll()
 	}
 
 	DeleteAllCompanions();
+	DeleteAllBlockers();
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
@@ -825,6 +887,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 	for (auto* companion : m_AllCompanions)
 	{
 		companion->Save(file);
+	}
+	
+	binary_write(file, (unsigned)m_AllBlockers.size());
+	for (auto* blocker : m_AllBlockers)
+	{
+		blocker->Save(file);
 	}
 
 	file.close();
@@ -874,6 +942,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 		auto* companion = GetWorld()->SpawnActor<ACompanionActor>();
 		m_AllCompanions.insert(companion);
 		companion->Load(file);
+	}
+
+	binary_read(file, count); //blocker
+	for (unsigned i = 0; i < count; ++i)
+	{
+		auto* blocker = GetWorld()->SpawnActor<ABlockerActor>();
+		m_AllBlockers.insert(blocker);
+		blocker->Load(file);
 	}
 
 	file.close();

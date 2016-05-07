@@ -36,9 +36,9 @@ public:
 	bool						UnlinkTileFomBarrier(AHexTileActor& tile); // returns if left orphan
 	void						UnlinkBarrierFromNeighborTiles();
 
-	void						On();
 	void						Off();
 	bool						m_On = true;
+	bool						m_OnImpl = true;
 
 	UFUNCTION()
 	void						OnClick(UPrimitiveComponent*pc);
