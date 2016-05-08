@@ -13,6 +13,7 @@
 
 #include <ostream>
 #include <fstream>
+#include <sstream>
 
 //========================================================================
 AHexEditorActor::AHexEditorActor()
@@ -161,10 +162,24 @@ void AHexEditorActor::Tick(float DeltaTime)
 		print_frame("Click on the platform target", DeltaTime);
 	}
 
-	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
-		{
-			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
-		});
+// 	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
+// 		{
+// 			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
+// 
+// 			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
+// 			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
+// 		});
+
+// 	for (auto& c : m_Grid.GetStorage())
+// 	{
+// 		auto pos = c.second->GetActorLocation();
+// 		auto newCoord = m_Grid.GetCoordinates(pos);
+// 
+// 		std::stringstream ss;
+// 		ss << c.first.s << "," << c.first.t << "\n";
+// 		ss << newCoord.s << "," << newCoord.t << "\n";
+// 		DrawDebugString(GetWorld(), pos, ss.str().c_str());
+// 	}
 }
 
 //========================================================================
@@ -724,7 +739,7 @@ void AHexEditorActor::PlaceBlocker(AHexTileActor& hexTile)
 		auto* blocker = GetWorld()->SpawnActor<ABlockerActor>();
 		m_AllCompanions.insert(blocker);
 		blocker->Init(traceResult.Location);
-		blocker->m_BaseTile = &hexTile;
+		//blocker->m_BaseTile = &hexTile;
 		m_CurrentBlocker = blocker;
 	});
 }

@@ -48,12 +48,24 @@ void ABlockerActor::Tick(float DeltaSeconds)
 //========================================================================
 void ABlockerActor::OnDrop()
 {
+	ACompanionActor::OnDrop();
+
+	auto& grid = gHexEditor->GetHexGrid();
+	auto coords = grid.GetCoordinates(GetActorLocation());
+	auto tile = grid.GetElement(coords);
+	check(tile);
+	m_BaseTile = tile;
 	m_Placing = true;
+	auto tilePos = m_BaseTile->GetActorLocation();
+	auto myPos = GetActorLocation();
+	SetActorLocation(FVector(tilePos.X, tilePos.Y, myPos.Z));
 }
 
 //========================================================================
 void ABlockerActor::OnPick()
 {
+	ACompanionActor::OnPick();
+
 	m_NeighborId = InvalidHexDir;
 	m_Placing = false;
 }

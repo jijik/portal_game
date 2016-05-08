@@ -30,6 +30,7 @@ public:
 	void		FillHorizontalNeighbors(const S_HexCoordinates& origin, Array6<S_HexCoordinates>& toFill);
 	void		SetTileRadius(float tileRadius);
 	FVector	GetPosition(const S_HexCoordinates& coordinates);
+	S_HexCoordinates	GetCoordinates(const FVector& position);
 	FVector	GetPositionBetweenTiles(const S_HexCoordinates& c1, const S_HexCoordinates& c2);
 
 	using T_Storage = std::unordered_map<S_HexCoordinates, T>;
@@ -112,6 +113,51 @@ FVector C_HexGrid<T>::GetPosition(const S_HexCoordinates& coordinates)
 	auto y = coordinates.s * 2.0 * m_BoundaryDistance + coordinates.t * m_BoundaryDistance;
 	auto z = coordinates.z * m_TileRadius;
 	return FVector(x, y, z);
+}
+
+//========================================================================
+template <typename T>
+S_HexCoordinates C_HexGrid<T>::GetCoordinates(const FVector& pos)
+{
+	S_HexCoordinates ret(0,0,0);
+
+	const auto r = m_TileRadius;
+	const auto d = m_BoundaryDistance;
+
+	// assume rectangular tiles (with height of 3/2 radius), starting at pointy top
+	// having two top corners belonging to the other tiles 
+
+	float t = (pos.X - r) / (-1.5f * r);
+	ret.t = FMath::FloorToInt(t);
+
+	float s = (pos.Y + d - (ret.t * d)) / (2 * d);
+	ret.s = FMath::FloorToInt(s);
+
+	//calculate if the point lies within corners (map top part of rectangle tile to [0-1]x[0-1]
+
+	float garbage;
+	float a = modf(t, &garbage);
+	float b = modf(s, &garbage);
+
+	if (a < 0) a += 1;
+	if (b < 0) b += 1;
+
+	a *= 3;
+
+	if (1.0f - a > 2.0f * b)
+	{
+		ret.t -= 1;
+	}
+
+	if (a < 2.0f * (b - 0.5f))
+	{
+		ret.t -= 1;
+		ret.s += 1;
+	}
+
+	ret.z = pos.Z / m_TileRadius;
+
+	return ret;
 }
 
 //========================================================================
