@@ -12,6 +12,7 @@
 class ABarrierActor;
 class ACompanionActor;
 class ABlockerActor;
+class ABridgeActor;
 
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
@@ -70,13 +71,14 @@ public:
 	bool						m_AttachingPlatform = false;
 
 	ABlockerActor*	m_CurrentBlocker = nullptr; //during placing
+	ABridgeActor*		m_CurrentBridge = nullptr; //during placing
 
-	std::set<ABarrierActor*> m_AllBarriers;
-	std::set<APlatformActor*> m_AllPlatforms;
-	std::set<ACompanionActor*> m_AllCompanions;
-	std::set<ABlockerActor*> m_AllBlockers;
+	std::set<ABarrierActor*>		m_AllBarriers;
+	std::set<APlatformActor*>		m_AllPlatforms;
+	std::set<ACompanionActor*>	m_AllCompanions;
+	std::set<ABlockerActor*>		m_AllBlockers;
+	std::set<ABridgeActor*>			m_AllBridges;
 
-private:
 	enum InputMode
 	{
 		None = 0,
@@ -85,14 +87,17 @@ private:
 		Platforms,
 		Companions,
 		Blockers,
+		Bridges,
 		Game,
 		TOTAL
 	};
-	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Companions", "Blockers", "Game" };
+	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Companions", "Blockers", "Bridges", "Game" };
 
 	void					DeleteTile();
+	void					DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld);
 	void					UnlinkAllFromTile(AHexTileActor& hexTile);
 
+private:
 	void					ExpandUp();
 	void					HandleSelectionMaterial(AHexTileActor* hexTile);
 	void					CycleModel();
@@ -117,8 +122,12 @@ private:
 
 	void					PlaceBlocker(AHexTileActor& hexTile);
 	void					DeleteAllBlockers();
-	void					UpdateBlockerPlacing();
 	void					FinishBlockerPlacing();
+
+	void					PlaceBridge(AHexTileActor& hexTile);
+	void					DeleteAllBridges();
+	void					FinishBridgePlacing();
+	void					GameCycleModel();
 
 	void					RegisterNoneBinding();
 	void					RegisterExpandingBinding();
@@ -126,6 +135,7 @@ private:
 	void					RegisterPlatformsBinding();
 	void					RegisterCompanionsBinding();
 	void					RegisterBlockersBinding();
+	void					RegisterBridgesBinding();
 	void					RegisterGameBinding();
 	void					UnregisterAllBindings();
 	void					SwitchBindings(InputMode to);

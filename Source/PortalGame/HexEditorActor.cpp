@@ -5,6 +5,7 @@
 #include "CompanionActor.h"
 #include "BlockerActor.h"
 #include "BarrierActor.h"
+#include "BridgeActor.h"
 #include "PlatformActor.h"
 #include "Dude.h"
 #include "HexGame.h"
@@ -79,6 +80,7 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	case AHexEditorActor::Platforms:	RegisterPlatformsBinding();	break;
 	case AHexEditorActor::Companions:	RegisterCompanionsBinding();break;
 	case AHexEditorActor::Blockers:		RegisterBlockersBinding();	break;
+	case AHexEditorActor::Bridges:		RegisterBridgesBinding();		break;
 	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
@@ -132,11 +134,19 @@ void AHexEditorActor::RegisterBlockersBinding()
 }
 
 //========================================================================
+void AHexEditorActor::RegisterBridgesBinding()
+{
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllBridges);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
 void AHexEditorActor::RegisterGameBinding()
 {
 	InputComponent->BindAction("Move", IE_Released, gHexGame->Dude, &ADude::Move);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 	InputComponent->BindAction("Action", IE_Pressed, this, &AHexEditorActor::ActionClick);
+	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::GameCycleModel);
 }
 
 //========================================================================
@@ -155,7 +165,6 @@ void AHexEditorActor::Tick(float DeltaTime)
 
 	UpdateBarrierPlacing();
 	UpdatePlatformPlacing();
-	UpdateBlockerPlacing();
 
 	if (m_AttachingPlatform)
 	{
@@ -168,7 +177,7 @@ void AHexEditorActor::Tick(float DeltaTime)
 // 
 // 			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
 // 			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
-// 		});
+// 		}); 
 
 // 	for (auto& c : m_Grid.GetStorage())
 // 	{
@@ -204,6 +213,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Blockers)
 	{
 		PlaceBlocker(hexTile);
+	}
+	else if (m_InputType == InputMode::Bridges)
+	{
+		PlaceBridge(hexTile);
 	}
 }
 
@@ -346,7 +359,13 @@ void AHexEditorActor::DeleteTile()
 		return;
 	}
 
-	auto coords = m_SelectedHexTile->GetCoordinates();
+	DeleteTileImpl(*m_SelectedHexTile, true);
+}
+
+//========================================================================
+void AHexEditorActor::DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld)
+{
+	auto coords = hexTile.GetCoordinates();
 
 	if (coords == m_RootTileCoordinates)
 	{
@@ -354,12 +373,14 @@ void AHexEditorActor::DeleteTile()
 		return;
 	}
 
-	auto* toDestroy = m_SelectedHexTile;
+	UnlinkAllFromTile(hexTile);
 
-	UnlinkAllFromTile(*m_SelectedHexTile);
+	if (deselectOld)
+	{
+		DeselectTile();
+	}
 
-	DeselectTile();
-	GetWorld()->DestroyActor(toDestroy);
+	GetWorld()->DestroyActor(&hexTile);
 	m_Grid.RemoveElement(coords);
 }
 
@@ -591,7 +612,12 @@ void AHexEditorActor::ActionClick()
 {
 	if (m_CurrentBlocker)
 	{
-		m_CurrentBlocker->m_Placing = false;
+		FinishBlockerPlacing();
+	}
+
+	if (m_CurrentBridge)
+	{
+		FinishBridgePlacing();
 	}
 
 	gHexGame->Dude->Drop();
@@ -728,19 +754,12 @@ void AHexEditorActor::DeleteAllCompanions()
 //========================================================================
 void AHexEditorActor::PlaceBlocker(AHexTileActor& hexTile)
 {
-	if (m_CurrentBlocker)
-	{
-		return;
-	}
-
 	Raycast<AHexTileActor>(this,
 		[&](auto& resultActor, auto& traceResult)
 	{
 		auto* blocker = GetWorld()->SpawnActor<ABlockerActor>();
-		m_AllCompanions.insert(blocker);
+		m_AllBlockers.insert(blocker);
 		blocker->Init(traceResult.Location);
-		//blocker->m_BaseTile = &hexTile;
-		m_CurrentBlocker = blocker;
 	});
 }
 
@@ -755,16 +774,48 @@ void AHexEditorActor::DeleteAllBlockers()
 }
 
 //========================================================================
-void AHexEditorActor::UpdateBlockerPlacing()
-{
-
-}
-
-//========================================================================
 void AHexEditorActor::FinishBlockerPlacing()
 {
 	m_CurrentBlocker->m_Placing = false;
 	m_CurrentBlocker = nullptr;
+}
+
+//========================================================================
+void AHexEditorActor::PlaceBridge(AHexTileActor& hexTile)
+{
+	Raycast<AHexTileActor>(this,
+		[&](auto& resultActor, auto& traceResult)
+	{
+		auto* bridge = GetWorld()->SpawnActor<ABridgeActor>();
+		m_AllBridges.insert(bridge);
+		bridge->Init(traceResult.Location);
+	});
+}
+
+//========================================================================
+void AHexEditorActor::DeleteAllBridges()
+{
+	for (auto* c : m_AllBridges)
+	{
+		GetWorld()->DestroyActor(c);
+	}
+	m_AllBridges.clear();
+}
+
+//========================================================================
+void AHexEditorActor::FinishBridgePlacing()
+{
+	m_CurrentBridge->m_Placing = false;
+	m_CurrentBridge = nullptr;
+}
+
+//========================================================================
+void AHexEditorActor::GameCycleModel()
+{
+	if (m_CurrentBridge)
+	{
+		m_CurrentBridge->Cycle();
+	}
 }
 
 //========================================================================
@@ -903,11 +954,17 @@ void AHexEditorActor::SaveMap(const FString& name)
 	{
 		companion->Save(file);
 	}
-	
+
 	binary_write(file, (unsigned)m_AllBlockers.size());
 	for (auto* blocker : m_AllBlockers)
 	{
 		blocker->Save(file);
+	}
+
+	binary_write(file, (unsigned)m_AllBridges.size());
+	for (auto* bridges : m_AllBridges)
+	{
+		bridges->Save(file);
 	}
 
 	file.close();
@@ -965,6 +1022,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 		auto* blocker = GetWorld()->SpawnActor<ABlockerActor>();
 		m_AllBlockers.insert(blocker);
 		blocker->Load(file);
+	}
+
+	binary_read(file, count); //bridges
+	for (unsigned i = 0; i < count; ++i)
+	{
+		auto* bridge = GetWorld()->SpawnActor<ABridgeActor>();
+		m_AllBridges.insert(bridge);
+		bridge->Load(file);
 	}
 
 	file.close();

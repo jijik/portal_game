@@ -49,7 +49,18 @@ void ABarrierActor::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
-	if (m_On != m_OnImpl)
+	if (m_On)
+	{
+		++m_CurrentState;
+	}
+	else
+	{
+		--m_CurrentState;
+	}
+
+	m_CurrentState = FMath::Clamp(m_CurrentState, 0, 10);
+
+	if ((m_CurrentState == 0 || m_CurrentState == 10) && m_On != m_OnImpl)
 	{
 		m_OnImpl = m_On;
 		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);

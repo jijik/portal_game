@@ -59,6 +59,7 @@ void ABlockerActor::OnDrop()
 	auto tilePos = m_BaseTile->GetActorLocation();
 	auto myPos = GetActorLocation();
 	SetActorLocation(FVector(tilePos.X, tilePos.Y, myPos.Z));
+	gHexEditor->m_CurrentBlocker = this;
 }
 
 //========================================================================

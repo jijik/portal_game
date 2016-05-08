@@ -39,6 +39,7 @@ public:
 	void						Off();
 	bool						m_On = true;
 	bool						m_OnImpl = true;
+	int							m_CurrentState = 0; // 0: closed 10: open
 
 	UFUNCTION()
 	void						OnClick(UPrimitiveComponent*pc);
