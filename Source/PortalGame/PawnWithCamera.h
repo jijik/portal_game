@@ -34,6 +34,10 @@ protected:
 	bool				m_CameraRotate;
 	bool				m_CameraZoomToggle;
 
+	float				m_FromAngle = 0;
+	float				m_ToAngle = 0;
+	float				m_CurrentAngle = 0;
+
 	void				MoveForward(float AxisValue);
 	void				MoveRight(float AxisValue);
 	void				CameraRotatePressed();
@@ -41,4 +45,7 @@ protected:
 	void				CameraYaw(float AxisValue);
 	void				CameraPitch(float AxisValue);
 	void				CameraZoom(float AxisValue);
+
+	void				RotateCamCCW();
+	void				RotateCamCW();
 };

@@ -21,6 +21,9 @@ APawnWithCamera::APawnWithCamera()
 	OurCameraSpringArm->bDoCollisionTest = false;
 	
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("GameCamera"));
+	Camera->ProjectionMode = ECameraProjectionMode::Orthographic;
+	Camera->OrthoWidth = 1024;
+
 	Camera->AttachTo(OurCameraSpringArm, USpringArmComponent::SocketName);
 
 	Light = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("Headlight"));
@@ -36,6 +39,8 @@ void APawnWithCamera::BeginPlay()
 
 	Light->CastShadows = false;
 	Light->Intensity = PI;
+
+	m_CurrentAngle = m_FromAngle = m_ToAngle = GetActorRotation().Yaw;
 }
 
 //========================================================================
@@ -43,12 +48,43 @@ void APawnWithCamera::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	//Rotate our actor's yaw, which will turn our camera because we're attached to it
+
+	if (m_FromAngle != m_ToAngle)
 	{
-		FRotator NewRotation = GetActorRotation();
-		NewRotation.Yaw += m_CameraInput.X * MoveSpeed;
-		SetActorRotation(NewRotation);
+		bool plus = m_ToAngle > m_FromAngle;
+
+		auto fromStart = FMath::Abs(m_CurrentAngle - m_FromAngle);
+		auto fromEnd = FMath::Abs(m_ToAngle - m_CurrentAngle);
+		auto dist = (m_ToAngle - m_FromAngle);
+		auto frac = FMath::Min(fromStart, fromEnd) / FMath::Abs(dist);
+		auto speedCoeficient = FMath::Max(frac * 15, 1.f);
+		auto addition = dist * DeltaTime * speedCoeficient;
+
+
+		if (plus && m_CurrentAngle + addition >= m_ToAngle
+		|| !plus && m_CurrentAngle - addition <= m_ToAngle)
+		{
+			m_FromAngle = m_ToAngle;
+			m_CurrentAngle = m_ToAngle;
+		}
+		else
+		{
+			m_CurrentAngle += addition;
+		}
+
+		FRotator rotation = GetActorRotation();
+		rotation.Yaw = m_CurrentAngle;
+		SetActorRotation(rotation);
 	}
+
+
+
+// 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
+// 	{
+// 		FRotator NewRotation = GetActorRotation();
+// 		NewRotation.Yaw += m_CameraInput.X * MoveSpeed;
+// 		SetActorRotation(NewRotation);
+// 	}
 
 	//Rotate our camera's pitch, but limit it so we're always looking downward
 	{
@@ -85,6 +121,8 @@ void APawnWithCamera::SetupPlayerInputComponent(class UInputComponent* InputComp
 
 	InputComponent->BindAction("CameraRotate", IE_Pressed, this, &APawnWithCamera::CameraRotatePressed);
 	InputComponent->BindAction("CameraRotate", IE_Released, this, &APawnWithCamera::CameraRotateReleased);
+	InputComponent->BindAction("RotateCamCCW", IE_Released, this, &APawnWithCamera::RotateCamCCW);
+	InputComponent->BindAction("RotateCamCW", IE_Released, this, &APawnWithCamera::RotateCamCW);
 
 	InputComponent->BindAxis("MoveForward", this, &APawnWithCamera::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APawnWithCamera::MoveRight);
@@ -143,4 +181,22 @@ void APawnWithCamera::CameraPitch(float AxisValue)
 void APawnWithCamera::CameraZoom(float AxisValue)
 {
 	m_CameraZoom = -AxisValue * 20;
+}
+
+//========================================================================
+void APawnWithCamera::RotateCamCCW()
+{
+	if (m_ToAngle == m_FromAngle)
+	{
+		m_ToAngle -= 60;
+	}
+}
+
+//========================================================================
+void APawnWithCamera::RotateCamCW()
+{
+	if (m_ToAngle == m_FromAngle)
+	{
+		m_ToAngle += 60;
+	}
 }
