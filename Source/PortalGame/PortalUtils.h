@@ -24,6 +24,8 @@ inline void hash_combine(std::size_t& seed, const T& v)
 //========================================================================
 template <typename T>
 using Array6 = std::array<T, 6>;
+template <typename T>
+using Array12 = std::array<T, 12>;
 
 //========================================================================
 #define Cont(container) std::begin(container), std::end(container)

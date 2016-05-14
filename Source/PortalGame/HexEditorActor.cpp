@@ -6,6 +6,7 @@
 #include "BlockerActor.h"
 #include "BarrierActor.h"
 #include "BridgeActor.h"
+#include "TurretActor.h"
 #include "PlatformActor.h"
 #include "Dude.h"
 #include "HexGame.h"
@@ -81,6 +82,7 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	case AHexEditorActor::Companions:	RegisterCompanionsBinding();break;
 	case AHexEditorActor::Blockers:		RegisterBlockersBinding();	break;
 	case AHexEditorActor::Bridges:		RegisterBridgesBinding();		break;
+	case AHexEditorActor::Turrets:		RegisterTurretsBinding();		break;
 	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
@@ -137,6 +139,13 @@ void AHexEditorActor::RegisterBlockersBinding()
 void AHexEditorActor::RegisterBridgesBinding()
 {
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllBridges);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterTurretsBinding()
+{
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllTurrets);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
@@ -217,6 +226,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Bridges)
 	{
 		PlaceBridge(hexTile);
+	}
+	else if (m_InputType == InputMode::Turrets)
+	{
+		PlaceTurret(hexTile);
 	}
 }
 
@@ -810,6 +823,28 @@ void AHexEditorActor::FinishBridgePlacing()
 }
 
 //========================================================================
+void AHexEditorActor::PlaceTurret(AHexTileActor& hexTile)
+{
+	Raycast<AHexTileActor>(this,
+		[&](auto& resultActor, auto& traceResult)
+	{
+		auto* turret = GetWorld()->SpawnActor<ATurretActor>();
+		m_AllTurrets.insert(turret);
+		turret->SetActorLocation(m_Grid.GetPosition(hexTile.GetCoordinates()));
+	});
+}
+
+//========================================================================
+void AHexEditorActor::DeleteAllTurrets()
+{
+	for (auto* c : m_AllTurrets)
+	{
+		GetWorld()->DestroyActor(c);
+	}
+	m_AllTurrets.clear();
+}
+
+//========================================================================
 void AHexEditorActor::GameCycleModel()
 {
 	if (m_CurrentBridge)
@@ -917,6 +952,7 @@ void AHexEditorActor::ClearAll()
 
 	DeleteAllCompanions();
 	DeleteAllBlockers();
+	DeleteAllTurrets();
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
@@ -965,6 +1001,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 	for (auto* bridges : m_AllBridges)
 	{
 		bridges->Save(file);
+	}
+
+	binary_write(file, (unsigned)m_AllTurrets.size());
+	for (auto* turret : m_AllTurrets)
+	{
+		turret->Save(file);
 	}
 
 	file.close();
@@ -1030,6 +1072,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 		auto* bridge = GetWorld()->SpawnActor<ABridgeActor>();
 		m_AllBridges.insert(bridge);
 		bridge->Load(file);
+	}
+
+	binary_read(file, count); //turret
+	for (unsigned i = 0; i < count; ++i)
+	{
+		auto* turret = GetWorld()->SpawnActor<ATurretActor>();
+		m_AllTurrets.insert(turret);
+		turret->Load(file);
 	}
 
 	file.close();

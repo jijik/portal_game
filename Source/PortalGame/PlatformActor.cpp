@@ -42,7 +42,7 @@ void APlatformActor::Tick(float DeltaSeconds)
 	if (m_Target)
 	{
 		auto z = FVector(0, 0, 30);
-		DrawDebugLine(GetWorld(), GetActorLocation() + z, m_Target->GetActorLocation() + z, FColor::Yellow, false, -1.f, 0, 1.0f);
+		DrawDebugLine(GetWorld(), GetActorLocation() + z, m_Target->GetActorLocation() + z, FColor::Yellow, false, -1.f, 0, 1.3f);
 
 		auto d = 40.0f;
 
