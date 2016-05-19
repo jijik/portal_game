@@ -8,6 +8,7 @@
 #include "BridgeActor.h"
 #include "TurretActor.h"
 #include "PlatformActor.h"
+#include "TeleportActor.h"
 #include "Dude.h"
 #include "HexGame.h"
 #include "ExpandArrowComponent.h"
@@ -83,6 +84,7 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	case AHexEditorActor::Blockers:		RegisterBlockersBinding();	break;
 	case AHexEditorActor::Bridges:		RegisterBridgesBinding();		break;
 	case AHexEditorActor::Turrets:		RegisterTurretsBinding();		break;
+	case AHexEditorActor::Teleports:	RegisterTeleportsBinding();	break;
 	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
@@ -146,6 +148,13 @@ void AHexEditorActor::RegisterBridgesBinding()
 void AHexEditorActor::RegisterTurretsBinding()
 {
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllTurrets);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterTeleportsBinding()
+{
+	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllTeleports);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
@@ -230,6 +239,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Turrets)
 	{
 		PlaceTurret(hexTile);
+	}
+	else if (m_InputType == InputMode::Teleports)
+	{
+		PlaceTeleport(hexTile);
 	}
 }
 
@@ -597,6 +610,14 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 			m_CurrentPlatform = nullptr;
 		}
 	}
+	else if (m_InputType == InputMode::Teleports)
+	{
+		if (m_CurrentTeleport)
+		{
+			GetWorld()->DestroyActor(m_CurrentTeleport);
+			m_CurrentTeleport = nullptr;
+		}
+	}
 
 	if (to == InputMode::Barriers)
 	{
@@ -842,6 +863,40 @@ void AHexEditorActor::DeleteAllTurrets()
 		GetWorld()->DestroyActor(c);
 	}
 	m_AllTurrets.clear();
+}
+
+//========================================================================
+void AHexEditorActor::PlaceTeleport(AHexTileActor& hexTile)
+{
+	auto createTeleport = [&]() 
+	{
+		auto* teleport = GetWorld()->SpawnActor<ATeleportActor>();
+		m_AllTeleports.insert(teleport);
+		teleport->SetActorLocation(m_Grid.GetPosition(hexTile.GetCoordinates())); 
+		return teleport;
+	};
+
+	if (!m_CurrentTeleport)
+	{
+		m_CurrentTeleport = createTeleport();
+	}
+	else
+	{
+		auto* teleport = createTeleport();
+		teleport->Link(*m_CurrentTeleport);
+		m_CurrentTeleport->Link(*teleport);
+		m_CurrentTeleport = nullptr;
+	}
+}
+
+//========================================================================
+void AHexEditorActor::DeleteAllTeleports()
+{
+	for (auto* c : m_AllTeleports)
+	{
+		GetWorld()->DestroyActor(c);
+	}
+	m_AllTeleports.clear();
 }
 
 //========================================================================

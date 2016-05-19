@@ -13,6 +13,7 @@ class ABarrierActor;
 class ACompanionActor;
 class ABlockerActor;
 class ABridgeActor;
+class ATeleportActor;
 class ATurretActor;
 
 UCLASS()
@@ -73,6 +74,7 @@ public:
 
 	ABlockerActor*	m_CurrentBlocker = nullptr; //during placing
 	ABridgeActor*		m_CurrentBridge = nullptr; //during placing
+	ATeleportActor*	m_CurrentTeleport = nullptr; //during placing
 
 	std::set<ABarrierActor*>		m_AllBarriers;
 	std::set<APlatformActor*>		m_AllPlatforms;
@@ -80,6 +82,7 @@ public:
 	std::set<ABlockerActor*>		m_AllBlockers;
 	std::set<ABridgeActor*>			m_AllBridges;
 	std::set<ATurretActor*>			m_AllTurrets;
+	std::set<ATeleportActor*>		m_AllTeleports;
 
 	enum InputMode
 	{
@@ -91,10 +94,14 @@ public:
 		Blockers,
 		Bridges,
 		Turrets,
+		Teleports,
 		Game,
 		TOTAL
 	};
-	std::string InputModeStr[TOTAL] = { "None", "Expanding", "Barriers", "Platform", "Companions", "Blockers", "Bridges", "Turrets", "Game" };
+	std::string InputModeStr[TOTAL] = { 
+		"None", "Expanding", "Barriers", "Platform",
+		"Companions", "Blockers", "Bridges", "Turrets",
+		"Teleports", "Game" };
 
 	void					DeleteTile();
 	void					DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld);
@@ -135,6 +142,9 @@ private:
 	void					PlaceTurret(AHexTileActor& hexTile);
 	void					DeleteAllTurrets();
 
+	void					PlaceTeleport(AHexTileActor& hexTile);
+	void					DeleteAllTeleports();
+
 	void					RegisterNoneBinding();
 	void					RegisterExpandingBinding();
 	void					RegisterBarriersBinding();
@@ -143,6 +153,7 @@ private:
 	void					RegisterBlockersBinding();
 	void					RegisterBridgesBinding();
 	void					RegisterTurretsBinding();
+	void					RegisterTeleportsBinding();
 	void					RegisterGameBinding();
 	void					UnregisterAllBindings();
 	void					SwitchBindings(InputMode to);
