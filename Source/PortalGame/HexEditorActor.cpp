@@ -189,13 +189,13 @@ void AHexEditorActor::Tick(float DeltaTime)
 		print_frame("Click on the platform target", DeltaTime);
 	}
 
-// 	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
-// 		{
-// 			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
-// 
-// 			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
-// 			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
-// 		}); 
+ 	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
+ 		{
+ 			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
+ 
+ 			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
+ 			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
+ 		}); 
 
 // 	for (auto& c : m_Grid.GetStorage())
 // 	{
@@ -614,6 +614,7 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 	{
 		if (m_CurrentTeleport)
 		{
+			m_AllTeleports.erase(m_CurrentTeleport);
 			GetWorld()->DestroyActor(m_CurrentTeleport);
 			m_CurrentTeleport = nullptr;
 		}
@@ -663,6 +664,11 @@ void AHexEditorActor::ActionClick()
 			if (companion)
 			{
 				companion->OnClick();
+			}
+			auto* teleport = Cast<ATeleportActor>(resultActor);
+			if (teleport)
+			{
+				teleport->Use(*gHexGame->Dude);
 			}
 		});
 }
@@ -1008,6 +1014,7 @@ void AHexEditorActor::ClearAll()
 	DeleteAllCompanions();
 	DeleteAllBlockers();
 	DeleteAllTurrets();
+	DeleteAllTeleports();
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
@@ -1062,6 +1069,12 @@ void AHexEditorActor::SaveMap(const FString& name)
 	for (auto* turret : m_AllTurrets)
 	{
 		turret->Save(file);
+	}
+
+	binary_write(file, (unsigned)m_AllTeleports.size());
+	for (auto* t : m_AllTeleports)
+	{
+		t->Save(file);
 	}
 
 	file.close();
@@ -1135,6 +1148,18 @@ void AHexEditorActor::LoadMap(const FString& name)
 		auto* turret = GetWorld()->SpawnActor<ATurretActor>();
 		m_AllTurrets.insert(turret);
 		turret->Load(file);
+	}
+
+	binary_read(file, count); //teleport
+	for (unsigned i = 0; i < count; ++i)
+	{
+		auto* teleport = GetWorld()->SpawnActor<ATeleportActor>();
+		m_AllTeleports.insert(teleport);
+		teleport->Load(file);
+	}
+	for (auto* t : m_AllTeleports)
+	{
+		t->PostLoad();
 	}
 
 	file.close();

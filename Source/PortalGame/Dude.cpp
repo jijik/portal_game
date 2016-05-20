@@ -29,14 +29,17 @@ void ADude::Tick( float DeltaTime )
 void ADude::Move()
 {
 	AAIController* controller = CastChecked<AAIController>(GetController());
-	auto* pc = GetWorld()->GetFirstPlayerController();
-	FHitResult TraceResult(ForceInit);
-	pc->GetHitResultUnderCursorByChannel(UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_WorldStatic), false, TraceResult);
-	auto* actor = TraceResult.GetActor();
-	if (actor)
+	Raycast<AActor>(this,	[&](auto& resultActor, auto& traceResult)
 	{
-		controller->MoveToLocation(TraceResult.Location);
-	}
+		controller->MoveToLocation(traceResult.Location);
+	});
+}
+
+//========================================================================
+void ADude::Stop()
+{
+	AAIController* controller = CastChecked<AAIController>(GetController());
+	controller->StopMovement();
 }
 
 //========================================================================

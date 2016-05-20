@@ -19,6 +19,7 @@ public:
 	virtual void	Tick( float DeltaSeconds ) override;
 
 	void					Move();
+	void					Stop();
 	void					Pick(ACompanionActor* companion);
 	void					Drop();
 
