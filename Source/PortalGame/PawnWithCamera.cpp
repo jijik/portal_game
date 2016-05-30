@@ -15,7 +15,7 @@ APawnWithCamera::APawnWithCamera()
 	OurCameraSpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraSpringArm"));
 	OurCameraSpringArm->AttachTo(RootComponent);
 	OurCameraSpringArm->SetRelativeLocationAndRotation(FVector(0.0f, 0.0f, 50.0f), FRotator(-60.0f, 0.0f, 0.0f));
-	OurCameraSpringArm->TargetArmLength = 400.f;
+	OurCameraSpringArm->TargetArmLength = 2000.f;
 	OurCameraSpringArm->bEnableCameraLag = true;
 	OurCameraSpringArm->CameraLagSpeed = 7.0f;
 	OurCameraSpringArm->bDoCollisionTest = false;
@@ -180,7 +180,8 @@ void APawnWithCamera::CameraPitch(float AxisValue)
 //========================================================================
 void APawnWithCamera::CameraZoom(float AxisValue)
 {
-	m_CameraZoom = -AxisValue * 20;
+	Camera->OrthoWidth += -AxisValue * 20;
+	Camera->OrthoWidth = FMath::Clamp(Camera->OrthoWidth, 500.f, 5000.f);
 }
 
 //========================================================================
