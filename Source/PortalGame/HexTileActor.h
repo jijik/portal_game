@@ -3,6 +3,7 @@
 #pragma once
 
 #include "HexCoordinates.h"
+#include "GraphUtils.h"
 #include "GameFramework/Actor.h"
 #include "HexTileActor.generated.h"
 
@@ -39,6 +40,8 @@ public:
 
 	void						Save(std::ofstream& stream);
 	void						Load(std::ifstream& stream);
+
+	T_GraphIndex		GraphIndex = INVALID_INDEX;
 
 private:
 	S_HexCoordinates				m_Coordinates;

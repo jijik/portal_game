@@ -6,6 +6,7 @@
 
 #include "GameFramework/Actor.h"
 #include "HexGrid.h"
+#include "PortalAI.h"
 #include "HexTileActor.h"
 #include "HexEditorActor.generated.h"
 
@@ -161,4 +162,5 @@ private:
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;
 
+	C_PortalAI				m_PortalAI;
 };

@@ -184,6 +184,8 @@ void AHexEditorActor::Tick(float DeltaTime)
 	UpdateBarrierPlacing();
 	UpdatePlatformPlacing();
 
+	m_PortalAI.Update(DeltaTime);
+
 	if (m_AttachingPlatform)
 	{
 		print_frame("Click on the platform target", DeltaTime);
@@ -1169,6 +1171,8 @@ void AHexEditorActor::LoadMap(const FString& name)
 	{
 		NavSys->Build();
 	}
+
+	m_PortalAI.Generate();
 }
 
 //========================================================================

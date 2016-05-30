@@ -15,6 +15,8 @@ public:
 
 	void			ResetIndex();
 
+	FVector		Position;
+
 protected:
 	T_GraphIndex m_index;
 };
