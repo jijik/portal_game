@@ -49,42 +49,42 @@ void APawnWithCamera::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 
-	if (m_FromAngle != m_ToAngle)
-	{
-		bool plus = m_ToAngle > m_FromAngle;
-
-		auto fromStart = FMath::Abs(m_CurrentAngle - m_FromAngle);
-		auto fromEnd = FMath::Abs(m_ToAngle - m_CurrentAngle);
-		auto dist = (m_ToAngle - m_FromAngle);
-		auto frac = FMath::Min(fromStart, fromEnd) / FMath::Abs(dist);
-		auto speedCoeficient = FMath::Max(frac * 15, 1.f);
-		auto addition = dist * DeltaTime * speedCoeficient;
-
-
-		if (plus && m_CurrentAngle + addition >= m_ToAngle
-		|| !plus && m_CurrentAngle - addition <= m_ToAngle)
-		{
-			m_FromAngle = m_ToAngle;
-			m_CurrentAngle = m_ToAngle;
-		}
-		else
-		{
-			m_CurrentAngle += addition;
-		}
-
-		FRotator rotation = GetActorRotation();
-		rotation.Yaw = m_CurrentAngle;
-		SetActorRotation(rotation);
-	}
-
-
-
-// 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
+// 	if (m_FromAngle != m_ToAngle)
 // 	{
-// 		FRotator NewRotation = GetActorRotation();
-// 		NewRotation.Yaw += m_CameraInput.X * MoveSpeed;
-// 		SetActorRotation(NewRotation);
+// 		bool plus = m_ToAngle > m_FromAngle;
+// 
+// 		auto fromStart = FMath::Abs(m_CurrentAngle - m_FromAngle);
+// 		auto fromEnd = FMath::Abs(m_ToAngle - m_CurrentAngle);
+// 		auto dist = (m_ToAngle - m_FromAngle);
+// 		auto frac = FMath::Min(fromStart, fromEnd) / FMath::Abs(dist);
+// 		auto speedCoeficient = FMath::Max(frac * 15, 1.f);
+// 		auto addition = dist * DeltaTime * speedCoeficient;
+// 
+// 
+// 		if (plus && m_CurrentAngle + addition >= m_ToAngle
+// 		|| !plus && m_CurrentAngle - addition <= m_ToAngle)
+// 		{
+// 			m_FromAngle = m_ToAngle;
+// 			m_CurrentAngle = m_ToAngle;
+// 		}
+// 		else
+// 		{
+// 			m_CurrentAngle += addition;
+// 		}
+// 
+// 		FRotator rotation = GetActorRotation();
+// 		rotation.Yaw = m_CurrentAngle;
+// 		SetActorRotation(rotation);
 // 	}
+
+
+
+ 	//Rotate our actor's yaw, which will turn our camera because we're attached to it
+ 	{
+ 		FRotator NewRotation = GetActorRotation();
+ 		NewRotation.Yaw += m_CameraInput.X * MoveSpeed;
+ 		SetActorRotation(NewRotation);
+ 	}
 
 	//Rotate our camera's pitch, but limit it so we're always looking downward
 	{

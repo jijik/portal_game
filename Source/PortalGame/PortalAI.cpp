@@ -48,7 +48,7 @@ void C_PortalAI::DebugDrawGraph(float dt)
 			auto toIndex = edge->To();
 			auto toPos = m_Graph.GetNode(toIndex)->Position;
 
-			toPos.Z += 30.f;
+			toPos.Z += GetTileType(m_Graph.GetNode(toIndex)->TileActor) == 0 ? 30 : 90;
 
 			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, FColor::Blue);
 
