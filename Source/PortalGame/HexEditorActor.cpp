@@ -191,13 +191,13 @@ void AHexEditorActor::Tick(float DeltaTime)
 		print_frame("Click on the platform target", DeltaTime);
 	}
 
- 	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
- 		{
- 			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
- 
- 			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
- 			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
- 		}); 
+//  	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
+//  		{
+//  			print_frame((*resultActor->GetHumanReadableName()), DeltaTime);
+//  
+//  			auto tileCenter = m_Grid.GetPosition(m_Grid.GetCoordinates(traceResult.Location));
+//  			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
+//  		}); 
 
 // 	for (auto& c : m_Grid.GetStorage())
 // 	{

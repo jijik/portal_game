@@ -4,6 +4,25 @@
 #include "HexEditorActor.h"
 #include "HexGame.h"
 
+#include <unordered_set>
+
+//========================================================================
+auto GetTileType = [](auto* hexTile)
+{
+	auto* mesh = hexTile->GetStaticMeshComponent()->StaticMesh;
+	auto& meshes = gHexEditor->AvailableTiles;
+	int i = 0;
+	for (; i < meshes.Num(); ++i)
+	{
+		if (mesh == meshes[i])
+		{
+			break;
+		}
+	}
+	check(i < meshes.Num());
+	return i;
+};
+
 //========================================================================
 void C_PortalAI::Update(float dt)
 {
@@ -20,7 +39,7 @@ void C_PortalAI::DebugDrawGraph(float dt)
 		auto fromIndex = node->GetIndex();
 		auto fromPos = m_Graph.GetNode(fromIndex)->Position;
 
-		fromPos.Z += 30.f;
+		fromPos.Z += GetTileType(node->TileActor) == 0 ? 30 : 90;
 
 		T_Graph::EdgeIterator edgeIterator(m_Graph, fromIndex);
 		auto* edge = edgeIterator.begin();
@@ -47,10 +66,14 @@ void C_PortalAI::Generate()
 
 	auto& storage = hexGrid.GetStorage();
 
+	//create nodes
 	for (auto& pair : storage)
 	{
 		auto hexCoords = pair.first;
 		auto* hexTileActor = pair.second;
+
+		auto type = GetTileType(hexTileActor);
+		if(type == 2) continue;
 
 		if (hexTileActor->GraphIndex == INVALID_INDEX)
 		{
@@ -59,25 +82,76 @@ void C_PortalAI::Generate()
 			newNode->SetIndex(newIndex);
 			hexTileActor->GraphIndex = newIndex;
 			newNode->Position = hexGrid.GetPosition(hexCoords);
+			newNode->TileActor = hexTileActor;
 		}
-		else
-		{
+	}
 
+	//create edges
+	std::unordered_set<std::pair<T_GraphIndex, T_GraphIndex>> toConnect; //lower first
+
+	auto insert = [&](auto* t1, auto* t2) 
+	{
+		auto p = std::make_pair(t1->GraphIndex, t2->GraphIndex);  
+		if (p.first > p.second)
+		{
+			std::swap(p.first, p.second);
 		}
+		toConnect.insert(p);
+	};
 
-		for (auto n : hexGrid.HorizontalNeighborIndexes)
+	for (auto& pair : storage)
+	{
+		auto hexCoords = pair.first;
+		auto* hexTileActor = pair.second;
+
+		if (hexTileActor->GraphIndex == INVALID_INDEX) continue;
+
+		auto type = GetTileType(hexTileActor);
+
+		std::vector<S_HexCoordinates> neighbors(hexGrid.HorizontalNeighborIndexes.begin(), hexGrid.HorizontalNeighborIndexes.end());
+		std::transform(hexGrid.HorizontalNeighborIndexes.begin(), hexGrid.HorizontalNeighborIndexes.end(),
+			std::back_inserter(neighbors), [](auto& c) { return c + S_HexCoordinates(0, 0, 1); });
+
+		for (auto n : neighbors)
 		{
+			bool z = n.z != 0;
 			auto neighborCoords = hexCoords + n;
 			auto* neighbor = hexGrid.GetElement(neighborCoords);
-			if (neighbor && neighbor->GraphIndex != INVALID_INDEX)
-			{
-				auto* edge1 = new C_GraphEdge(hexTileActor->GraphIndex, neighbor->GraphIndex);
-				auto* edge2 = new C_GraphEdge(neighbor->GraphIndex, hexTileActor->GraphIndex);
 
-				m_Graph.AddEdge(edge1);
-				m_Graph.AddEdge(edge2);
+			if (!neighbor || neighbor->GraphIndex == INVALID_INDEX)
+			{
+				continue;
+			}
+
+			auto ntype = GetTileType(neighbor);
+			if (type == 0 && ntype == 0 && !z)
+			{
+				insert(hexTileActor, neighbor);
+			}
+			else if (type == 0 && ntype == 1)
+			{
+				int rot = (neighbor->GetActorRotation().Yaw + 10.0f) / 60.0f; //safe offset
+				if (hexGrid.HorizontalNeighborIndexes[6-rot] == n)
+				{
+					insert(hexTileActor, neighbor);
+				}
+			}
+			else if (type == 1 && ntype == 0 && z)
+			{
+				int rot = (hexTileActor->GetActorRotation().Yaw + 10.0f) / 60.0f; //safe offset
+				if (hexGrid.HorizontalNeighborIndexes[6-rot] == S_HexCoordinates(n.s, n.t))
+				{
+					insert(hexTileActor, neighbor);
+				}
 			}
 		}
+	}
 
+	for (auto connectpair : toConnect)
+	{
+		auto* edge1 = new C_GraphEdge(connectpair.first, connectpair.second);
+		auto* edge2 = new C_GraphEdge(connectpair.second, connectpair.first);
+		m_Graph.AddEdge(edge1);
+		m_Graph.AddEdge(edge2);
 	}
 }

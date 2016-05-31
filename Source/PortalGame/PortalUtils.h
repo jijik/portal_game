@@ -22,6 +22,22 @@ inline void hash_combine(std::size_t& seed, const T& v)
 }
 
 //========================================================================
+namespace std
+{
+	template<typename T1, typename T2>
+	struct hash < pair<T1, T2> >
+	{
+		inline size_t operator()(const pair<T1, T2> & v) const
+		{
+			size_t seed = 0;
+			hash_combine(seed, v.first);
+			hash_combine(seed, v.second);
+			return seed;
+		}
+	};
+}
+
+//========================================================================
 template <typename T>
 using Array6 = std::array<T, 6>;
 template <typename T>

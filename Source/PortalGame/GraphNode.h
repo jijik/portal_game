@@ -3,6 +3,8 @@
 #include "PortalGame.h"
 #include "GraphUtils.h"
 
+class AHexTileActor;
+
 class C_GraphNode
 {
 public:
@@ -16,6 +18,7 @@ public:
 	void			ResetIndex();
 
 	FVector		Position;
+	AHexTileActor* TileActor = nullptr;
 
 protected:
 	T_GraphIndex m_index;
