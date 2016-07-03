@@ -16,6 +16,7 @@ class ABlockerActor;
 class ABridgeActor;
 class ATeleportActor;
 class ATurretActor;
+class AFinishActor;
 
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
@@ -84,6 +85,7 @@ public:
 	std::set<ABridgeActor*>			m_AllBridges;
 	std::set<ATurretActor*>			m_AllTurrets;
 	std::set<ATeleportActor*>		m_AllTeleports;
+	AFinishActor*								m_Finish = nullptr;
 
 	enum InputMode
 	{
@@ -96,13 +98,14 @@ public:
 		Bridges,
 		Turrets,
 		Teleports,
+		Finish,
 		Game,
 		TOTAL
 	};
 	std::string InputModeStr[TOTAL] = { 
 		"None", "Expanding", "Barriers", "Platform",
 		"Companions", "Blockers", "Bridges", "Turrets",
-		"Teleports", "Game" };
+		"Teleports", "Finish", "Game" };
 
 	void					DeleteTile();
 	void					DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld);
@@ -146,6 +149,8 @@ private:
 	void					PlaceTeleport(AHexTileActor& hexTile);
 	void					DeleteAllTeleports();
 
+	void					PlaceFinish(AHexTileActor& hexTile);
+
 	void					RegisterNoneBinding();
 	void					RegisterExpandingBinding();
 	void					RegisterBarriersBinding();
@@ -155,6 +160,7 @@ private:
 	void					RegisterBridgesBinding();
 	void					RegisterTurretsBinding();
 	void					RegisterTeleportsBinding();
+	void					RegisterFinishBinding();
 	void					RegisterGameBinding();
 	void					UnregisterAllBindings();
 	void					SwitchBindings(InputMode to);

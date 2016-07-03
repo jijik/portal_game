@@ -20,9 +20,12 @@ public:
 	float					GetCost() const;
 	void					SetCost(float cost);
 
+	bool					m_Enabled = true;
+
 protected:
 	T_GraphIndex	m_fromIndex;
 	T_GraphIndex	m_toIndex;
+
 
 	float	m_cost;
 

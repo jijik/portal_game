@@ -1,5 +1,8 @@
 
+#include <algorithm>
+#include "PortalUtils.h"
 #include "PortalGame.h"
+#include "PortalAI.h"
 #include "GraphNode.h"
 
 //=============================================================================================================
@@ -22,7 +25,8 @@ C_GraphNode::C_GraphNode(T_GraphIndex index)
 
 C_GraphNode::~C_GraphNode()
 {
-
+	std::for_each(Cont(AIElements), deleter);
+	AIElements.clear();
 }
 
 //=============================================================================================================

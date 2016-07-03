@@ -4,6 +4,7 @@
 #include "GraphUtils.h"
 
 class AHexTileActor;
+struct C_AIElement;
 
 class C_GraphNode
 {
@@ -19,6 +20,7 @@ public:
 
 	FVector		Position;
 	AHexTileActor* TileActor = nullptr;
+	std::vector<C_AIElement*> AIElements; //takes ownership
 
 protected:
 	T_GraphIndex m_index;

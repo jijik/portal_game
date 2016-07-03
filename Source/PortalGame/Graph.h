@@ -26,7 +26,7 @@ public:
 	T_GraphIndex			AddNode(NODE & node);
 	void							AddEdge(EDGE & edge);
 	NODE &						GetNode(T_GraphIndex index);
-	EDGE *						GetEdge(T_GraphIndex from, T_GraphIndex to);
+	EDGE							GetEdge(T_GraphIndex from, T_GraphIndex to);
 	const NODE &			GetNode(T_GraphIndex index) const;
 	const EDGE &			GetEdge(T_GraphIndex from, T_GraphIndex to) const;
 	void							RemoveNode(T_GraphIndex index);

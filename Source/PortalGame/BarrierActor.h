@@ -50,6 +50,8 @@ public:
 
 	unsigned				GetId() { return m_Id; }
 
+	auto						GetNeighbors() { return m_Neighbors; }
+
 private:
 	unsigned																	m_CurrentModelId = 0;
 	struct S_NeighborInfo { AHexTileActor* neighbor; HexDir slotAtNeighbor; };

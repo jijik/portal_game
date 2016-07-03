@@ -2,6 +2,10 @@
 #include "PortalAI.h"
 #include "PortalUtils.h"
 #include "HexEditorActor.h"
+#include "FinishActor.h"
+#include "PlatformActor.h"
+#include "CompanionActor.h"
+#include "BarrierActor.h"
 #include "HexGame.h"
 
 #include <unordered_set>
@@ -50,7 +54,7 @@ void C_PortalAI::DebugDrawGraph(float dt)
 
 			toPos.Z += GetTileType(m_Graph.GetNode(toIndex)->TileActor) == 0 ? 30 : 90;
 
-			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, FColor::Blue);
+			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, edge->m_Enabled ? FColor::Green : FColor::Red);
 
 			edge = edgeIterator.next();
 		}
@@ -154,4 +158,39 @@ void C_PortalAI::Generate()
 		m_Graph.AddEdge(edge1);
 		m_Graph.AddEdge(edge2);
 	}
+
+	//barriers
+	for (auto* b : gHexEditor->m_AllBarriers)
+	{
+		auto pair = b->GetNeighbors();
+		auto from = pair.first.neighbor->GraphIndex;
+		auto to = pair.second.neighbor->GraphIndex;
+		if (from != INVALID_INDEX && to != INVALID_INDEX)
+		{
+			m_Graph.GetEdge(from, to)->m_Enabled = false;
+		}
+
+		m_Barriers.emplace_back();
+		m_Barriers.back().on = true;
+		m_Barriers.back().m_Neighbors.first.neighbor = pair.first.neighbor;
+		m_Barriers.back().m_Neighbors.first.slotAtNeighbor = pair.first.slotAtNeighbor;
+		m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
+		m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
+	}
+	
+	if (!gHexEditor->m_Finish)
+	{
+		print_frame("NO AI GENERATED, FINISH IS NOT PLACED", 3.0f);
+		return;
+	}
+
+	auto GetGraphNode = [&](auto* actor) 
+	{
+		auto pos = actor->GetActorLocation();
+		auto* element = hexGrid.GetElement(hexGrid.GetCoordinates(pos));
+		return m_Graph.GetNode(element->GraphIndex);
+	};
+
+	GetGraphNode(gHexEditor->m_Finish)->AIElements.push_back(new C_AIFinish);
+
 }

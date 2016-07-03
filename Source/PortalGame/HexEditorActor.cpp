@@ -8,6 +8,7 @@
 #include "BridgeActor.h"
 #include "TurretActor.h"
 #include "PlatformActor.h"
+#include "FinishActor.h"
 #include "TeleportActor.h"
 #include "Dude.h"
 #include "HexGame.h"
@@ -85,6 +86,7 @@ void AHexEditorActor::SwitchBindings(InputMode to)
 	case AHexEditorActor::Bridges:		RegisterBridgesBinding();		break;
 	case AHexEditorActor::Turrets:		RegisterTurretsBinding();		break;
 	case AHexEditorActor::Teleports:	RegisterTeleportsBinding();	break;
+	case AHexEditorActor::Finish:			RegisterFinishBinding();	break;
 	case AHexEditorActor::Game:				RegisterGameBinding();			break;
 	default:	check(false);	break;
 	}
@@ -148,6 +150,12 @@ void AHexEditorActor::RegisterBridgesBinding()
 void AHexEditorActor::RegisterTurretsBinding()
 {
 	InputComponent->BindAction("DEL", IE_Released, this, &AHexEditorActor::DeleteAllTurrets);
+	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
+}
+
+//========================================================================
+void AHexEditorActor::RegisterFinishBinding()
+{
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
 }
 
@@ -245,6 +253,10 @@ void AHexEditorActor::ClickOnTile(AHexTileActor& hexTile)
 	else if (m_InputType == InputMode::Teleports)
 	{
 		PlaceTeleport(hexTile);
+	}
+	else if (m_InputType == InputMode::Finish)
+	{
+		PlaceFinish(hexTile);
 	}
 }
 
@@ -908,6 +920,17 @@ void AHexEditorActor::DeleteAllTeleports()
 }
 
 //========================================================================
+void AHexEditorActor::PlaceFinish(AHexTileActor& hexTile)
+{
+	if (!m_Finish)
+	{
+		m_Finish = GetWorld()->SpawnActor<AFinishActor>();
+	}
+
+	m_Finish->SetActorLocation(m_Grid.GetPosition(hexTile.GetCoordinates()));
+}
+
+//========================================================================
 void AHexEditorActor::GameCycleModel()
 {
 	if (m_CurrentBridge)
@@ -1079,6 +1102,9 @@ void AHexEditorActor::SaveMap(const FString& name)
 		t->Save(file);
 	}
 
+	binary_write(file, m_Finish);
+	m_Finish->Save(file);
+
 	file.close();
 }
 
@@ -1162,6 +1188,14 @@ void AHexEditorActor::LoadMap(const FString& name)
 	for (auto* t : m_AllTeleports)
 	{
 		t->PostLoad();
+	}
+
+	AFinishActor* finish;
+	binary_read(file, finish); //finish
+	if (finish)
+	{
+		m_Finish = GetWorld()->SpawnActor<AFinishActor>();
+		m_Finish->Load(file);
 	}
 
 	file.close();

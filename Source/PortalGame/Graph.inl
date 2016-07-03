@@ -142,20 +142,20 @@ NODE & C_Graph<NODE, EDGE>::GetNode(T_GraphIndex index)
 //=============================================================================================================
 
 template <typename NODE, typename EDGE>
-EDGE * C_Graph<NODE,EDGE>::GetEdge(T_GraphIndex from, T_GraphIndex to)
+EDGE C_Graph<NODE,EDGE>::GetEdge(T_GraphIndex from, T_GraphIndex to)
 {
 	check(IsNodePresent(from) && "Invalid node");
 	check(IsNodePresent(to) && "Invalid node");
 
-	T_Edges & e = m_nodeEdges[from];
-	typename T_Edges::iterator it = e.begin();
-	for(; it != e.end(); ++it)
+	T_Edges e = m_nodeEdges[from];
+	for (auto* edge : e)
 	{
-		if(it->to() == to)
-			return &ensure_ref(*it);
+		if (edge->To() == to)
+		{
+			return edge;
+		}
 	}
-		 
-	return 0;
+	return nullptr;
 }
 
 //=============================================================================================================

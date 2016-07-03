@@ -47,6 +47,9 @@ using Array12 = std::array<T, 12>;
 #define Cont(container) std::begin(container), std::end(container)
 
 //========================================================================
+const auto deleter = [](auto* obj) { delete obj; };
+
+//========================================================================
 #define print(text) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 1.5, FColor::White,text)
 #define print_frame(text, dt) if (GEngine) GEngine->AddOnScreenDebugMessage(-1, dt, FColor::White,text)
 
