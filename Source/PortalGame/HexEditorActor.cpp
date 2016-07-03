@@ -207,16 +207,12 @@ void AHexEditorActor::Tick(float DeltaTime)
 //  			DrawDebugCircle(GetWorld(), tileCenter, 50, 32, FColor::Red, false, -1.f, 0, 3);
 //  		}); 
 
-// 	for (auto& c : m_Grid.GetStorage())
-// 	{
-// 		auto pos = c.second->GetActorLocation();
-// 		auto newCoord = m_Grid.GetCoordinates(pos);
-// 
-// 		std::stringstream ss;
-// 		ss << c.first.s << "," << c.first.t << "\n";
-// 		ss << newCoord.s << "," << newCoord.t << "\n";
-// 		DrawDebugString(GetWorld(), pos, ss.str().c_str());
-// 	}
+//	for (auto& c : m_Grid.GetStorage())
+//	{
+//		std::stringstream ss;
+//		ss << c.first.s << "," << c.first.t << "\n";
+//		DrawDebugString(GetWorld(), pos, ss.str().c_str());
+//	}
 }
 
 //========================================================================
@@ -1055,9 +1051,13 @@ void AHexEditorActor::SaveMap(const FString& name)
 	auto& gridStorage = m_Grid.GetStorage();
 
 	binary_write(file, (unsigned)gridStorage.size());
+	this->Save(file); //editor tile first
 	for (auto& pair : gridStorage)
 	{
-		pair.second->Save(file);
+		if (pair.second != this)
+		{
+			pair.second->Save(file);
+		}
 	}
 
 	binary_write(file, (unsigned)m_AllBarriers.size());
@@ -1124,8 +1124,17 @@ void AHexEditorActor::LoadMap(const FString& name)
 	binary_read(file, count); //tiles
 	for (unsigned i = 0; i < count; ++i)
 	{
-		auto* tile = GetWorld()->SpawnActor<AHexTileActor>();
-		tile->Init({ 0,0,0 }); //tmp coords;
+		AHexTileActor* tile;
+		if (i == 0)
+		{
+			tile = this;
+		}
+		else
+		{
+			tile = GetWorld()->SpawnActor<AHexTileActor>();
+			tile->Init({ 0,0,0 }); //tmp coords;
+		}
+
 		tile->Load(file);
 		m_Grid.InsertElement(tile->GetCoordinates(), tile);
 	}

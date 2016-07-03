@@ -111,6 +111,8 @@ public:
 	void					DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld);
 	void					UnlinkAllFromTile(AHexTileActor& hexTile);
 
+	C_PortalAI		m_PortalAI;
+
 private:
 	void					ExpandUp();
 	void					HandleSelectionMaterial(AHexTileActor* hexTile);
@@ -167,6 +169,4 @@ private:
 
 	InputMode					m_InputType = InputMode::Expanding;
 	T_HexGrid					m_Grid;
-
-	C_PortalAI				m_PortalAI;
 };

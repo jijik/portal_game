@@ -35,8 +35,15 @@ static void Hex_LoadMap(const TArray< FString >& params)
 }
 
 //========================================================================
+static void Hex_Solve(const TArray< FString >& params)
+{
+	gHexEditor->m_PortalAI.Solve();
+}
+
+//========================================================================
 namespace HexConsole
 {
 	static FAutoConsoleCommand c01(TEXT("Hex_SaveMap"), TEXT("mapname"), FConsoleCommandWithArgsDelegate::CreateStatic(&Hex_SaveMap));
 	static FAutoConsoleCommand c02(TEXT("Hex_LoadMap"), TEXT("mapname"), FConsoleCommandWithArgsDelegate::CreateStatic(&Hex_LoadMap));
+	static FAutoConsoleCommand c03(TEXT("Hex_Solve"), TEXT(""), FConsoleCommandWithArgsDelegate::CreateStatic(&Hex_Solve));
 };

@@ -7,6 +7,8 @@
 #include "CompanionActor.h"
 #include "BarrierActor.h"
 #include "HexGame.h"
+#include "GraphUtils.h"
+#include "GraphSearchAStar.h"
 
 #include <unordered_set>
 
@@ -36,8 +38,6 @@ void C_PortalAI::Update(float dt)
 //========================================================================
 void C_PortalAI::DebugDrawGraph(float dt)
 {
-	DrawDebugString(gHexGame->GetWorld(), FVector(0,0,0), "TETE");
-
 	T_Graph::NodeIterator nodeIterator(m_Graph);
 	auto* node = nodeIterator.begin();
 	while (!nodeIterator.end())
@@ -47,14 +47,7 @@ void C_PortalAI::DebugDrawGraph(float dt)
 
 		fromPos.Z += GetTileType(node->TileActor) == 0 ? 30 : 90;
 
-		FString label;
-		for (auto* elm : node->AIElements)
-		{
-			label.Append(elm->typeStr());
-			label.Append(" ");
-		}
-		DrawDebugString(gHexGame->GetWorld(), fromPos, label, 0, FColor::White, dt);
-		DrawDebugLine(gHexGame->GetWorld(), fromPos, fromPos+FVector(0,0,30), FColor::Blue);
+		DrawDebugString(gHexGame->GetWorld(), fromPos, FString::FromInt(fromIndex), 0, FColor::White, dt);
 
 		T_Graph::EdgeIterator edgeIterator(m_Graph, fromIndex);
 		auto* edge = edgeIterator.begin();
@@ -65,7 +58,7 @@ void C_PortalAI::DebugDrawGraph(float dt)
 
 			toPos.Z += GetTileType(m_Graph.GetNode(toIndex)->TileActor) == 0 ? 30 : 90;
 
-			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, edge->m_Enabled ? FColor::Green : FColor::Red);
+			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, edge->m_Enabled ? FColor::Green : FColor::Red, false, dt*3);
 
 			edge = edgeIterator.next();
 		}
@@ -178,6 +171,7 @@ void C_PortalAI::Generate()
 		if (from != INVALID_INDEX && pair.second.neighbor && pair.second.neighbor->GraphIndex != INVALID_INDEX)
 		{
 			m_Graph.GetEdge(from, pair.second.neighbor->GraphIndex)->m_Enabled = false;
+			m_Graph.GetEdge(pair.second.neighbor->GraphIndex, from)->m_Enabled = false;
 		}
 
 		m_Barriers.emplace_back();
@@ -232,3 +226,32 @@ void C_PortalAI::Generate()
 
 	m_ActorPos = gHexEditor->GraphIndex;
 }
+
+//========================================================================
+void C_PortalAI::Solve()
+{
+	std::vector<T_GraphIndex> openlist;
+
+	using AStar = C_GraphSearchAStar<T_Graph, Heuristic_Dijkstra>;
+	
+	std::function<bool(AStar::edge_const_t&)> traversePred = [](AStar::edge_const_t& edge) { return edge->m_Enabled; };
+
+	AStar search(	m_Graph, m_ActorPos, INVALID_INDEX, false,
+								traversePred,
+								AStar::NoCallback,
+								&openlist);
+
+	std::vector<C_AIElement*> elements;
+	for (auto nodeId : openlist)
+	{
+		auto& elms = m_Graph.GetNode(nodeId)->AIElements;
+		for (auto* e : elms)
+		{
+			elements.push_back(e);
+		}
+	}
+
+	elements.size();
+}
+
+//========================================================================

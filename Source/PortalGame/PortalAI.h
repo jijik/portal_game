@@ -59,6 +59,8 @@ public:
 
 	void	Generate();
 
+	void	Solve();
+
 private:
 	T_Graph m_Graph;
 
