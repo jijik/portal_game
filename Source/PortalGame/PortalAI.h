@@ -10,7 +10,10 @@ struct C_AIElement
 {
 	virtual ~C_AIElement() = default;
 	enum type { barrier, finish, platform, cube };
+	const char* typeStr(type t) { const char* arr[] = { "bar", "fin", "pf", "cb" }; return arr[(unsigned)t]; }
+	const char* typeStr() { return typeStr(GetType()); }
 	virtual type GetType() = 0;
+	T_GraphIndex m_CurrentIndex = INVALID_INDEX;
 };
 
 //========================================================================
@@ -26,6 +29,7 @@ struct C_AIBarrier : public C_AIElement
 	std::pair<S_NeighborInfo, S_NeighborInfo> m_Neighbors; //first is always valid
 	bool on = true;
 	virtual type GetType() { return barrier; }
+	unsigned m_Id;
 };
 
 //========================================================================
@@ -58,8 +62,8 @@ public:
 private:
 	T_Graph m_Graph;
 
-	C_AIFinish	m_Finish;
-	std::vector<C_AIBarrier>	m_Barriers;
-	std::vector<C_AIPlatform> m_Platforms;
-	std::vector<C_AICube> m_Cubes;
+	T_GraphIndex								m_ActorPos;
+	std::vector<C_AIBarrier>		m_Barriers;
+	std::vector<C_AICube*>			m_Cubes;
+	std::vector<C_AIPlatform*>	m_Platforms;
 };

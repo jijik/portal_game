@@ -36,6 +36,8 @@ void C_PortalAI::Update(float dt)
 //========================================================================
 void C_PortalAI::DebugDrawGraph(float dt)
 {
+	DrawDebugString(gHexGame->GetWorld(), FVector(0,0,0), "TETE");
+
 	T_Graph::NodeIterator nodeIterator(m_Graph);
 	auto* node = nodeIterator.begin();
 	while (!nodeIterator.end())
@@ -44,6 +46,15 @@ void C_PortalAI::DebugDrawGraph(float dt)
 		auto fromPos = m_Graph.GetNode(fromIndex)->Position;
 
 		fromPos.Z += GetTileType(node->TileActor) == 0 ? 30 : 90;
+
+		FString label;
+		for (auto* elm : node->AIElements)
+		{
+			label.Append(elm->typeStr());
+			label.Append(" ");
+		}
+		DrawDebugString(gHexGame->GetWorld(), fromPos, label, 0, FColor::White, dt);
+		DrawDebugLine(gHexGame->GetWorld(), fromPos, fromPos+FVector(0,0,30), FColor::Blue);
 
 		T_Graph::EdgeIterator edgeIterator(m_Graph, fromIndex);
 		auto* edge = edgeIterator.begin();
@@ -164,10 +175,9 @@ void C_PortalAI::Generate()
 	{
 		auto pair = b->GetNeighbors();
 		auto from = pair.first.neighbor->GraphIndex;
-		auto to = pair.second.neighbor->GraphIndex;
-		if (from != INVALID_INDEX && to != INVALID_INDEX)
+		if (from != INVALID_INDEX && pair.second.neighbor && pair.second.neighbor->GraphIndex != INVALID_INDEX)
 		{
-			m_Graph.GetEdge(from, to)->m_Enabled = false;
+			m_Graph.GetEdge(from, pair.second.neighbor->GraphIndex)->m_Enabled = false;
 		}
 
 		m_Barriers.emplace_back();
@@ -176,6 +186,7 @@ void C_PortalAI::Generate()
 		m_Barriers.back().m_Neighbors.first.slotAtNeighbor = pair.first.slotAtNeighbor;
 		m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
 		m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
+		m_Barriers.back().m_Id = b->GetId();
 	}
 	
 	if (!gHexEditor->m_Finish)
@@ -191,6 +202,33 @@ void C_PortalAI::Generate()
 		return m_Graph.GetNode(element->GraphIndex);
 	};
 
-	GetGraphNode(gHexEditor->m_Finish)->AIElements.push_back(new C_AIFinish);
+	auto* fin = new C_AIFinish;
+	auto* node = GetGraphNode(gHexEditor->m_Finish);
+	node->AIElements.push_back(fin);
+	fin->m_CurrentIndex = node->GetIndex();
 
+	for (auto* platform : gHexEditor->m_AllPlatforms)
+	{
+		auto targetId = platform->GetTarget()->GetId();
+		auto it = std::find_if(Cont(m_Barriers), [&](auto& bar) { return bar.m_Id == targetId; });
+		check(it != m_Barriers.end());
+
+		auto* p = new C_AIPlatform;
+		p->m_Target = &*it;
+		auto* tile = GetGraphNode(platform);
+		tile->AIElements.push_back(p);
+		m_Platforms.push_back(p);
+		p->m_CurrentIndex = tile->GetIndex();
+	}
+
+	for (auto* cube : gHexEditor->m_AllCompanions)
+	{
+		auto* c = new C_AICube;
+		auto* node = GetGraphNode(cube);
+		node->AIElements.push_back(c);
+		m_Cubes.push_back(c);
+		c->m_CurrentIndex = node->GetIndex();
+	}
+
+	m_ActorPos = gHexEditor->GraphIndex;
 }

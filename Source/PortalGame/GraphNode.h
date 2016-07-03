@@ -20,7 +20,7 @@ public:
 
 	FVector		Position;
 	AHexTileActor* TileActor = nullptr;
-	std::vector<C_AIElement*> AIElements; //takes ownership
+	std::vector<C_AIElement*> AIElements; 
 
 protected:
 	T_GraphIndex m_index;

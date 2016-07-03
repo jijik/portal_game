@@ -25,8 +25,7 @@ C_GraphNode::C_GraphNode(T_GraphIndex index)
 
 C_GraphNode::~C_GraphNode()
 {
-	std::for_each(Cont(AIElements), deleter);
-	AIElements.clear();
+
 }
 
 //=============================================================================================================
