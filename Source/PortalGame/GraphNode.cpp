@@ -1,7 +1,6 @@
 
-#include <algorithm>
-#include "PortalUtils.h"
 #include "PortalGame.h"
+#include "PortalUtils.h"
 #include "PortalAI.h"
 #include "GraphNode.h"
 

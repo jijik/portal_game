@@ -4,6 +4,7 @@
 #include "Containers/UnrealString.h"
 
 #include "HexEditorActor.h"
+#include "PortalAI.h"
 #include "PortalUtils.h"
 
 #pragma once
@@ -37,7 +38,7 @@ static void Hex_LoadMap(const TArray< FString >& params)
 //========================================================================
 static void Hex_Solve(const TArray< FString >& params)
 {
-	gHexEditor->m_PortalAI.Solve();
+	gHexEditor->m_PortalAI->Solve();
 }
 
 //========================================================================

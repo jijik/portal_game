@@ -12,6 +12,7 @@
 #include "TeleportActor.h"
 #include "Dude.h"
 #include "HexGame.h"
+#include "PortalAI.h"
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
@@ -23,6 +24,8 @@
 AHexEditorActor::AHexEditorActor()
 	:m_RootTileCoordinates(0,0,0)
 {
+	m_PortalAI = new C_PortalAI;
+
 	gHexEditor = this;
 
 	m_Grid.SetTileRadius(100.0);
@@ -34,6 +37,12 @@ AHexEditorActor::AHexEditorActor()
 
 	m_DefaultMaterial = DefaultMat.Object;
 	m_SelectedMaterial = Selected.Object;
+}
+
+//========================================================================
+AHexEditorActor::~AHexEditorActor()
+{
+	delete m_PortalAI;
 }
 
 //========================================================================
@@ -192,7 +201,7 @@ void AHexEditorActor::Tick(float DeltaTime)
 	UpdateBarrierPlacing();
 	UpdatePlatformPlacing();
 
-	m_PortalAI.Update(DeltaTime);
+	m_PortalAI->Update(DeltaTime);
 
 	if (m_AttachingPlatform)
 	{
@@ -1215,7 +1224,7 @@ void AHexEditorActor::LoadMap(const FString& name)
 		NavSys->Build();
 	}
 
-	m_PortalAI.Generate();
+	m_PortalAI->Generate();
 }
 
 //========================================================================

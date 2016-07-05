@@ -167,20 +167,15 @@ void C_PortalAI::Generate()
 	for (auto* b : gHexEditor->m_AllBarriers)
 	{
 		auto pair = b->GetNeighbors();
-		auto from = pair.first.neighbor->GraphIndex;
-		if (from != INVALID_INDEX && pair.second.neighbor && pair.second.neighbor->GraphIndex != INVALID_INDEX)
-		{
-			m_Graph.GetEdge(from, pair.second.neighbor->GraphIndex)->m_Enabled = false;
-			m_Graph.GetEdge(pair.second.neighbor->GraphIndex, from)->m_Enabled = false;
-		}
 
-		m_Barriers.emplace_back();
-		m_Barriers.back().on = true;
-		m_Barriers.back().m_Neighbors.first.neighbor = pair.first.neighbor;
-		m_Barriers.back().m_Neighbors.first.slotAtNeighbor = pair.first.slotAtNeighbor;
-		m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
-		m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
-		m_Barriers.back().m_Id = b->GetId();
+		m_InitialState.m_Barriers.emplace_back();
+		m_InitialState.m_Barriers.back().on = true;
+		m_InitialState.m_Barriers.back().m_Neighbors.first.neighbor = pair.first.neighbor;
+		m_InitialState.m_Barriers.back().m_Neighbors.first.slotAtNeighbor = pair.first.slotAtNeighbor;
+		m_InitialState.m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
+		m_InitialState.m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
+		m_InitialState.m_Barriers.back().m_Id = b->GetId();
+		m_InitialState.m_Barriers.back().enable(false, m_Graph);
 	}
 	
 	if (!gHexEditor->m_Finish)
@@ -204,14 +199,14 @@ void C_PortalAI::Generate()
 	for (auto* platform : gHexEditor->m_AllPlatforms)
 	{
 		auto targetId = platform->GetTarget()->GetId();
-		auto it = std::find_if(Cont(m_Barriers), [&](auto& bar) { return bar.m_Id == targetId; });
-		check(it != m_Barriers.end());
+		auto it = std::find_if(Cont(m_InitialState.m_Barriers), [&](auto& bar) { return bar.m_Id == targetId; });
+		check(it != m_InitialState.m_Barriers.end());
 
 		auto* p = new C_AIPlatform;
 		p->m_Target = &*it;
 		auto* tile = GetGraphNode(platform);
 		tile->AIElements.push_back(p);
-		m_Platforms.push_back(p);
+		m_InitialState.m_Platforms.push_back(p);
 		p->m_CurrentIndex = tile->GetIndex();
 	}
 
@@ -220,38 +215,94 @@ void C_PortalAI::Generate()
 		auto* c = new C_AICube;
 		auto* node = GetGraphNode(cube);
 		node->AIElements.push_back(c);
-		m_Cubes.push_back(c);
+		m_InitialState.m_Cubes.push_back(c);
 		c->m_CurrentIndex = node->GetIndex();
 	}
 
-	m_ActorPos = gHexEditor->GraphIndex;
+	m_InitialState.m_ActorPos = gHexEditor->GraphIndex;
 }
 
 //========================================================================
 void C_PortalAI::Solve()
 {
-	std::vector<T_GraphIndex> openlist;
+	std::vector<C_AIElement*> cubeElements;
+	std::vector<C_AIElement*> platformElements;
+	bool finished = false;
 
-	using AStar = C_GraphSearchAStar<T_Graph, Heuristic_Dijkstra>;
-	
-	std::function<bool(AStar::edge_const_t&)> traversePred = [](AStar::edge_const_t& edge) { return edge->m_Enabled; };
-
-	AStar search(	m_Graph, m_ActorPos, INVALID_INDEX, false,
-								traversePred,
-								AStar::NoCallback,
-								&openlist);
-
-	std::vector<C_AIElement*> elements;
-	for (auto nodeId : openlist)
+	auto getElements = [&](const S_State& state)
 	{
-		auto& elms = m_Graph.GetNode(nodeId)->AIElements;
-		for (auto* e : elms)
-		{
-			elements.push_back(e);
-		}
-	}
+		finished = false;
+		cubeElements.clear();
+		platformElements.clear();
+		std::vector<T_GraphIndex> openlist;
 
-	elements.size();
+		using AStar = C_GraphSearchAStar<T_Graph, Heuristic_Dijkstra>;
+	
+		std::function<bool(AStar::edge_const_t&)> traversePred = [](AStar::edge_const_t& edge) { return edge->m_Enabled; };
+
+		AStar search(	m_Graph, state.m_ActorPos, INVALID_INDEX, false,
+									traversePred,
+									AStar::NoCallback,
+									&openlist);
+
+		for (auto nodeId : openlist)
+		{
+			auto& elms = m_Graph.GetNode(nodeId)->AIElements;
+			for (auto* e : elms)
+			{
+				if (e->GetType() == C_AIElement::cube)
+				{
+					cubeElements.push_back(e);
+				}
+				else if (e->GetType() == C_AIElement::platform)
+				{
+					platformElements.push_back(e);
+				}
+				else if (e->GetType() == C_AIElement::finish)
+				{
+					finished = true;
+				}
+			}
+		}
+	};
+
+	unsigned currId = 0;
+	std::vector<S_State> visited;
+	visited.reserve(10000);
+	visited.push_back(m_InitialState);
+
+	while (currId < visited.size())
+	{
+		getElements(visited[currId]);
+		if (finished)
+		{
+			finished = finished;
+			break;
+		}
+
+		
+
+		++currId;
+	}
 }
 
 //========================================================================
+void C_AIPlatform::activate(bool b)
+{
+	if (m_Target)
+	{
+		m_Target->enable(b, gHexEditor->m_PortalAI->m_Graph);
+	}
+}
+
+//========================================================================
+void C_AIBarrier::enable(bool b, T_Graph& graph)
+{
+	if (m_Neighbors.first.neighbor->GraphIndex != INVALID_INDEX &&
+		m_Neighbors.second.neighbor &&
+		m_Neighbors.second.neighbor->GraphIndex != INVALID_INDEX)
+	{
+		graph.GetEdge(m_Neighbors.first.neighbor->GraphIndex, m_Neighbors.second.neighbor->GraphIndex)->m_Enabled = b;
+		graph.GetEdge(m_Neighbors.second.neighbor->GraphIndex, m_Neighbors.first.neighbor->GraphIndex)->m_Enabled = b;
+	}
+}

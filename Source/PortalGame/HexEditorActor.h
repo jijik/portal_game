@@ -6,7 +6,6 @@
 
 #include "GameFramework/Actor.h"
 #include "HexGrid.h"
-#include "PortalAI.h"
 #include "HexTileActor.h"
 #include "HexEditorActor.generated.h"
 
@@ -17,6 +16,7 @@ class ABridgeActor;
 class ATeleportActor;
 class ATurretActor;
 class AFinishActor;
+class C_PortalAI;
 
 UCLASS()
 class PORTALGAME_API AHexEditorActor : public AHexTileActor
@@ -25,6 +25,7 @@ class PORTALGAME_API AHexEditorActor : public AHexTileActor
 	
 public:	
 	AHexEditorActor();
+	~AHexEditorActor();
 
 	virtual void	BeginPlay() override;
 	virtual void	Tick(float DeltaTime) override;
@@ -111,7 +112,7 @@ public:
 	void					DeleteTileImpl(AHexTileActor& hexTile, bool deselectOld);
 	void					UnlinkAllFromTile(AHexTileActor& hexTile);
 
-	C_PortalAI		m_PortalAI;
+	C_PortalAI*		m_PortalAI;
 
 private:
 	void					ExpandUp();
