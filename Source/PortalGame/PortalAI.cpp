@@ -38,25 +38,25 @@ void C_PortalAI::Update(float dt)
 //========================================================================
 void C_PortalAI::DebugDrawGraph(float dt)
 {
-	T_Graph::NodeIterator nodeIterator(m_Graph);
+	T_Graph::NodeIterator nodeIterator(m_InitialState.m_Graph);
 	auto* node = nodeIterator.begin();
 	while (!nodeIterator.end())
 	{
 		auto fromIndex = node->GetIndex();
-		auto fromPos = m_Graph.GetNode(fromIndex)->Position;
+		auto fromPos = m_InitialState.m_Graph.GetNode(fromIndex)->Position;
 
 		fromPos.Z += GetTileType(node->TileActor) == 0 ? 30 : 90;
 
 		DrawDebugString(gHexGame->GetWorld(), fromPos, FString::FromInt(fromIndex), 0, FColor::White, dt);
 
-		T_Graph::EdgeIterator edgeIterator(m_Graph, fromIndex);
+		T_Graph::EdgeIterator edgeIterator(m_InitialState.m_Graph, fromIndex);
 		auto* edge = edgeIterator.begin();
 		while (!edgeIterator.end())
 		{
 			auto toIndex = edge->To();
-			auto toPos = m_Graph.GetNode(toIndex)->Position;
+			auto toPos = m_InitialState.m_Graph.GetNode(toIndex)->Position;
 
-			toPos.Z += GetTileType(m_Graph.GetNode(toIndex)->TileActor) == 0 ? 30 : 90;
+			toPos.Z += GetTileType(m_InitialState.m_Graph.GetNode(toIndex)->TileActor) == 0 ? 30 : 90;
 
 			DrawDebugLine(gHexGame->GetWorld(), fromPos, toPos, edge->m_Enabled ? FColor::Green : FColor::Red, false, dt*3);
 
@@ -86,7 +86,7 @@ void C_PortalAI::Generate()
 		if (hexTileActor->GraphIndex == INVALID_INDEX)
 		{
 			auto* newNode = new C_GraphNode;
-			auto newIndex = m_Graph.AddNode(newNode);
+			auto newIndex = m_InitialState.m_Graph.AddNode(newNode);
 			newNode->SetIndex(newIndex);
 			hexTileActor->GraphIndex = newIndex;
 			newNode->Position = hexGrid.GetPosition(hexCoords);
@@ -159,8 +159,8 @@ void C_PortalAI::Generate()
 	{
 		auto* edge1 = new C_GraphEdge(connectpair.first, connectpair.second);
 		auto* edge2 = new C_GraphEdge(connectpair.second, connectpair.first);
-		m_Graph.AddEdge(edge1);
-		m_Graph.AddEdge(edge2);
+		m_InitialState.m_Graph.AddEdge(edge1);
+		m_InitialState.m_Graph.AddEdge(edge2);
 	}
 
 	//barriers
@@ -175,7 +175,7 @@ void C_PortalAI::Generate()
 		m_InitialState.m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
 		m_InitialState.m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
 		m_InitialState.m_Barriers.back().m_Id = b->GetId();
-		m_InitialState.m_Barriers.back().enable(false, m_Graph);
+		m_InitialState.m_Barriers.back().enable(false, m_InitialState.m_Graph);
 	}
 	
 	if (!gHexEditor->m_Finish)
@@ -188,7 +188,7 @@ void C_PortalAI::Generate()
 	{
 		auto pos = actor->GetActorLocation();
 		auto* element = hexGrid.GetElement(hexGrid.GetCoordinates(pos));
-		return m_Graph.GetNode(element->GraphIndex);
+		return m_InitialState.m_Graph.GetNode(element->GraphIndex);
 	};
 
 	auto* fin = new C_AIFinish;
@@ -225,8 +225,8 @@ void C_PortalAI::Generate()
 //========================================================================
 void C_PortalAI::Solve()
 {
-	std::vector<C_AIElement*> cubeElements;
-	std::vector<C_AIElement*> platformElements;
+	std::vector<C_AICube*> cubeElements;
+	std::vector<C_AIPlatform*> platformElements;
 	bool finished = false;
 
 	auto getElements = [&](const S_State& state)
@@ -240,23 +240,23 @@ void C_PortalAI::Solve()
 	
 		std::function<bool(AStar::edge_const_t&)> traversePred = [](AStar::edge_const_t& edge) { return edge->m_Enabled; };
 
-		AStar search(	m_Graph, state.m_ActorPos, INVALID_INDEX, false,
+		AStar search(state.m_Graph, state.m_ActorPos, INVALID_INDEX, false,
 									traversePred,
 									AStar::NoCallback,
 									&openlist);
 
 		for (auto nodeId : openlist)
 		{
-			auto& elms = m_Graph.GetNode(nodeId)->AIElements;
+			auto& elms = state.m_Graph.GetNode(nodeId)->AIElements;
 			for (auto* e : elms)
 			{
 				if (e->GetType() == C_AIElement::cube)
 				{
-					cubeElements.push_back(e);
+					cubeElements.push_back(static_cast<C_AICube*>(e));
 				}
 				else if (e->GetType() == C_AIElement::platform)
 				{
-					platformElements.push_back(e);
+					platformElements.push_back(static_cast<C_AIPlatform*>(e));
 				}
 				else if (e->GetType() == C_AIElement::finish)
 				{
@@ -273,31 +273,54 @@ void C_PortalAI::Solve()
 
 	while (currId < visited.size())
 	{
-		getElements(visited[currId]);
+		auto& state = visited[currId];
+
+		getElements(state);
 		if (finished)
 		{
 			finished = finished;
 			break;
 		}
 
-		
+		for (auto* cube : cubeElements)
+		{
+			for (auto* platform : platformElements)
+			{
+				if (cube->m_PlacedOn == nullptr && platform->m_On == false) //free cube and platform
+				{
+					S_State newState = state;
+					cube->m_PlacedOn = platform;
+					platform->activate(true, newState.m_Graph);
+					newState.previousStateId = currId;
+
+					auto contains = std::find(visited.begin(), visited.end(), newState) != visited.end();
+					if (!contains)
+					{
+						visited.push_back(newState);
+					}
+				}
+			}
+		}
 
 		++currId;
 	}
 }
 
 //========================================================================
-void C_AIPlatform::activate(bool b)
+void C_AIPlatform::activate(bool b, T_Graph& graph)
 {
+	m_On = b;
 	if (m_Target)
 	{
-		m_Target->enable(b, gHexEditor->m_PortalAI->m_Graph);
+		m_Target->enable(b, graph);
 	}
 }
 
 //========================================================================
 void C_AIBarrier::enable(bool b, T_Graph& graph)
 {
+	if (b == on) return;
+
 	if (m_Neighbors.first.neighbor->GraphIndex != INVALID_INDEX &&
 		m_Neighbors.second.neighbor &&
 		m_Neighbors.second.neighbor->GraphIndex != INVALID_INDEX)
@@ -305,4 +328,6 @@ void C_AIBarrier::enable(bool b, T_Graph& graph)
 		graph.GetEdge(m_Neighbors.first.neighbor->GraphIndex, m_Neighbors.second.neighbor->GraphIndex)->m_Enabled = b;
 		graph.GetEdge(m_Neighbors.second.neighbor->GraphIndex, m_Neighbors.first.neighbor->GraphIndex)->m_Enabled = b;
 	}
+
+	on = b;
 }

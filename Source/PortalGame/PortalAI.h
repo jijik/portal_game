@@ -60,7 +60,7 @@ struct C_AIPlatform : public C_AIElement
 	virtual type GetType() { return platform; }
 	C_AIBarrier*	m_Target = nullptr;
 	bool m_On = false;
-	void activate(bool b);
+	void activate(bool b, T_Graph& graph);
 	bool operator==(const C_AIPlatform& rhs)
 	{
 		return C_AIElement::operator==(rhs) && m_Target == rhs.m_Target && m_On == rhs.m_On;
@@ -73,7 +73,7 @@ struct C_AICube : public C_AIElement
 {
 	virtual type GetType() { return cube; }
 	C_AIPlatform* m_PlacedOn = nullptr;
-
+	
 	bool operator==(const C_AICube& rhs)
 	{
 		return C_AIElement::operator==(rhs) && m_PlacedOn == rhs.m_PlacedOn;
@@ -94,10 +94,9 @@ public:
 
 	void	Solve();
 
-	T_Graph m_Graph;
-
 	struct S_State
 	{
+		T_Graph m_Graph;
 		T_GraphIndex								m_ActorPos;
 		std::vector<C_AIBarrier>		m_Barriers;
 		std::vector<C_AICube*>			m_Cubes;
