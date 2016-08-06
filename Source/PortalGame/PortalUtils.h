@@ -44,6 +44,13 @@ template <typename T>
 using Array12 = std::array<T, 12>;
 
 //========================================================================
+template <typename Container, typename T>
+void erase(Container & c, const T & val)
+{
+	c.erase(std::remove(c.begin(), c.end(), val), c.end());
+}
+
+//========================================================================
 #define Cont(container) std::begin(container), std::end(container)
 
 //========================================================================

@@ -49,6 +49,9 @@ public:
 	void							CullInvalidEdges();
 	void							RemoveNodeWithNoEdges();
 
+	void							DeleteAll();
+	void							CloneTo(C_Graph<NODE, EDGE>& to);
+
 	static_assert(std::is_pointer<NODE>::value, "You are using non pointer type!");
 	static_assert(std::is_pointer<EDGE>::value, "You are using non pointer type!");
 	//if you getting this error, and you want to use graph with non-pointer type, you must revise

@@ -313,7 +313,51 @@ float C_Graph <NODE, EDGE>::DistEq(T_GraphIndex from, T_GraphIndex to)
 }
 
 //=============================================================================================================
+template <typename NODE, typename EDGE>
+void C_Graph<NODE, EDGE>::CloneTo(C_Graph<NODE, EDGE>& to)
+{
+	to.m_nextNodeIndex = m_nextNodeIndex;
+	to.m_digraph = m_digraph;
+
+	to.m_nodes.clear();
+	for (unsigned i = 0; i < m_nodes.size(); ++i)
+	{
+		auto* newNode = new std::remove_pointer<NODE>::type;
+		*newNode = *m_nodes[i];
+		to.m_nodes.push_back(newNode);
+	}
+
+	for (unsigned i = 0; i < m_nodeEdges.size(); ++i)
+	{
+		to.m_nodeEdges[i].clear();
+		for (unsigned j = 0; j < m_nodeEdges[i].size(); ++j)
+		{
+			auto* edge = new std::remove_pointer<EDGE>::type;
+			*edge = *m_nodeEdges[i][j];
+			to.m_nodeEdges[i].push_back(edge);
+		}
+	}
+}
+
 //=============================================================================================================
+template <typename NODE, typename EDGE>
+void C_Graph<NODE, EDGE>::DeleteAll()
+{
+	for (unsigned i = 0; i < m_nodes.size(); ++i)
+	{
+		delete m_nodes[i];
+	}
+	for (unsigned i = 0; i < m_nodeEdges.size(); ++i)
+	{
+		for (unsigned j = 0; j < m_nodeEdges[i].size(); ++j)
+		{
+			delete m_nodeEdges[i][j];
+		}
+	}
+}
+
+//=============================================================================================================
+
 
 
 //////////////////////////////////////////////////////////////////////////

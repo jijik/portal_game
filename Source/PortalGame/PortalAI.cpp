@@ -11,6 +11,8 @@
 #include "GraphSearchAStar.h"
 
 #include <unordered_set>
+#include <string>
+#include <sstream>
 
 //========================================================================
 auto GetTileType = [](auto* hexTile)
@@ -73,6 +75,8 @@ void C_PortalAI::Generate()
 	auto& hexGrid = gHexEditor->GetHexGrid();
 
 	auto& storage = hexGrid.GetStorage();
+
+	m_InitialState.m_Graph.Clear();
 
 	//create nodes
 	for (auto& pair : storage)
@@ -164,6 +168,7 @@ void C_PortalAI::Generate()
 	}
 
 	//barriers
+	m_InitialState.m_Barriers.reserve(gHexEditor->m_AllBarriers.size());
 	for (auto* b : gHexEditor->m_AllBarriers)
 	{
 		auto pair = b->GetNeighbors();
@@ -191,32 +196,34 @@ void C_PortalAI::Generate()
 		return m_InitialState.m_Graph.GetNode(element->GraphIndex);
 	};
 
-	auto* fin = new C_AIFinish;
+	m_InitialState.m_Finish = new C_AIFinish;
 	auto* node = GetGraphNode(gHexEditor->m_Finish);
-	node->AIElements.push_back(fin);
-	fin->m_CurrentIndex = node->GetIndex();
+	node->AIElements.push_back(m_InitialState.m_Finish);
+	m_InitialState.m_Finish->m_CurrentIndex = node->GetIndex();
 
+	m_InitialState.m_Platforms.reserve(gHexEditor->m_AllPlatforms.size());
 	for (auto* platform : gHexEditor->m_AllPlatforms)
 	{
 		auto targetId = platform->GetTarget()->GetId();
 		auto it = std::find_if(Cont(m_InitialState.m_Barriers), [&](auto& bar) { return bar.m_Id == targetId; });
 		check(it != m_InitialState.m_Barriers.end());
 
-		auto* p = new C_AIPlatform;
-		p->m_Target = &*it;
+		m_InitialState.m_Platforms.emplace_back();
+		auto& p = m_InitialState.m_Platforms.back();
+		p.m_Target = &*it;
 		auto* tile = GetGraphNode(platform);
-		tile->AIElements.push_back(p);
-		m_InitialState.m_Platforms.push_back(p);
-		p->m_CurrentIndex = tile->GetIndex();
+		tile->AIElements.push_back(&p);
+		p.m_CurrentIndex = tile->GetIndex();
 	}
 
+	m_InitialState.m_Cubes.reserve(gHexEditor->m_AllCompanions.size());
 	for (auto* cube : gHexEditor->m_AllCompanions)
 	{
-		auto* c = new C_AICube;
+		m_InitialState.m_Cubes.emplace_back();
+		auto& c = m_InitialState.m_Cubes.back();
 		auto* node = GetGraphNode(cube);
-		node->AIElements.push_back(c);
-		m_InitialState.m_Cubes.push_back(c);
-		c->m_CurrentIndex = node->GetIndex();
+		node->AIElements.push_back(&c);
+		c.m_CurrentIndex = node->GetIndex();
 	}
 
 	m_InitialState.m_ActorPos = gHexEditor->GraphIndex;
@@ -270,6 +277,10 @@ void C_PortalAI::Solve()
 	std::vector<S_State> visited;
 	visited.reserve(10000);
 	visited.push_back(m_InitialState);
+	m_InitialState.CloneTo(visited.back());
+
+	std::vector<std::string> actions;
+	actions.resize(10000);
 
 	while (currId < visited.size())
 	{
@@ -278,6 +289,14 @@ void C_PortalAI::Solve()
 		getElements(state);
 		if (finished)
 		{
+			std::stringstream ss;
+			unsigned stateId = currId;
+			while (stateId != 0)
+			{
+				ss << actions[stateId] << "\n";
+				stateId = visited[stateId].previousStateId;
+			}
+			auto result = ss.str();
 			finished = finished;
 			break;
 		}
@@ -288,15 +307,30 @@ void C_PortalAI::Solve()
 			{
 				if (cube->m_PlacedOn == nullptr && platform->m_On == false) //free cube and platform
 				{
-					S_State newState = state;
-					cube->m_PlacedOn = platform;
-					platform->activate(true, newState.m_Graph);
+					check(visited.size() < 10000);
+					visited.push_back(state);
+					auto& newState = visited.back();
+					state.CloneTo(newState);
+
+					auto* p = state.Get<C_AIPlatform*>(platform);
+					auto* c = state.Get<C_AICube*>(cube);
+
+					std::stringstream ss;
+					ss << "Place cube from " << c->m_CurrentIndex << " to platform at " << p->m_CurrentIndex;
+
+					c->PickUp(newState.m_Graph);
+					c->Place(newState.m_Graph, *p);
+
 					newState.previousStateId = currId;
 
-					auto contains = std::find(visited.begin(), visited.end(), newState) != visited.end();
-					if (!contains)
+					auto it = std::find(visited.begin(), visited.end() - 1, newState);
+					if (it != visited.end() - 1)
 					{
-						visited.push_back(newState);
+						visited.pop_back();
+					}
+					else
+					{
+						actions[visited.size() - 1] = ss.str();
 					}
 				}
 			}
@@ -304,6 +338,8 @@ void C_PortalAI::Solve()
 
 		++currId;
 	}
+
+	std::for_each(Cont(visited), [](auto& state) {state.m_Graph.DeleteAll(); });
 }
 
 //========================================================================
