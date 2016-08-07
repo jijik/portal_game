@@ -6,6 +6,7 @@
 #include "AIController.h"
 #include "HexGame.h"
 #include "PortalUtils.h"
+#include "DudeActions.h"
 
 //========================================================================
 ADude::ADude()
@@ -23,6 +24,19 @@ void ADude::BeginPlay()
 void ADude::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+
+	if (!m_ActionQueue.empty())
+	{
+		if (!m_ActionQueue.front()->Update())
+		{
+			delete m_ActionQueue.front();
+			m_ActionQueue.pop();
+			if (!m_ActionQueue.empty())
+			{
+				m_ActionQueue.front()->Start();
+			}
+		}
+	}
 }
 
 //========================================================================
@@ -73,3 +87,21 @@ void ADude::Drop()
 }
 
 //========================================================================
+void ADude::PushAction(C_DudeAction& action)
+{
+	m_ActionQueue.push(&action);
+	if (m_ActionQueue.size() == 1)
+	{
+		m_ActionQueue.front()->Start();
+	}
+}
+
+//========================================================================
+void ADude::ClearActionQueue()
+{
+	while (!m_ActionQueue.empty())
+	{
+		delete m_ActionQueue.front();
+		m_ActionQueue.pop();
+	}
+}

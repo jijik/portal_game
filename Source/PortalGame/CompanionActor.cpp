@@ -4,6 +4,7 @@
 #include "Dude.h"
 #include "HexGame.h"
 #include "CompanionActor.h"
+#include "DudeActions.h"
 
 //========================================================================
 ACompanionActor::ACompanionActor()
@@ -29,12 +30,21 @@ void ACompanionActor::Init(const FVector& pos)
 //========================================================================
 void ACompanionActor::OnClick()
 {
-	auto dudePos = gHexGame->Dude->GetActorLocation();
+//	auto dudePos = gHexGame->Dude->GetActorLocation();
+//
+//	if (FVector::Dist(dudePos, GetActorLocation()) < 30)
+// 	{
+// 		gHexGame->Dude->Pick(this);
+// 	}
+	auto& dude = *gHexGame->Dude;
+	auto* gotoAction = new C_DudeMoveTo(dude);
+	gotoAction->target = GetActorLocation();
 
-	//if (FVector::Dist(dudePos, GetActorLocation()) < 30)
-	{
-		gHexGame->Dude->Pick(this);
-	}
+	auto* pickupAction = new C_DudePick(dude);
+	pickupAction->compation = this;
+
+	dude.PushAction(*gotoAction);
+	dude.PushAction(*pickupAction);
 }
 
 //========================================================================
