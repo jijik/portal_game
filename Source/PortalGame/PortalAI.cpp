@@ -75,8 +75,9 @@ void C_PortalAI::Generate()
 	auto& hexGrid = gHexEditor->GetHexGrid();
 
 	auto& storage = hexGrid.GetStorage();
+	hexGrid.GetElement({0,0,0})->GraphIndex = INVALID_INDEX;
 
-	m_InitialState.m_Graph.Clear();
+	m_InitialState.Clear();
 
 	//create nodes
 	for (auto& pair : storage)

@@ -132,12 +132,24 @@ public:
 
 	struct S_State
 	{
-		C_AIFinish* m_Finish;
+		C_AIFinish* m_Finish = nullptr;
 		T_Graph m_Graph;
 		T_GraphIndex							m_ActorPos;
 		std::vector<C_AIBarrier>	m_Barriers;
 		std::vector<C_AICube>			m_Cubes;
 		std::vector<C_AIPlatform>	m_Platforms;
+
+		void Clear()
+		{
+			m_Graph.DeleteAll();
+			m_Graph.Clear();
+			delete m_Finish;
+			m_Finish = nullptr;
+			m_ActorPos = INVALID_INDEX;
+			m_Barriers.clear();
+			m_Cubes.clear();
+			m_Platforms.clear();
+		}
 
 		std::unordered_map<void*, void*> mapper;
 		void CloneTo(S_State& toFill)

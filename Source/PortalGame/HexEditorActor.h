@@ -153,6 +153,7 @@ private:
 	void					DeleteAllTeleports();
 
 	void					PlaceFinish(AHexTileActor& hexTile);
+	void					DeleteFinish();
 
 	void					RegisterNoneBinding();
 	void					RegisterExpandingBinding();

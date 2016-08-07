@@ -938,6 +938,16 @@ void AHexEditorActor::PlaceFinish(AHexTileActor& hexTile)
 }
 
 //========================================================================
+void AHexEditorActor::DeleteFinish()
+{
+	if (m_Finish)
+	{
+		GetWorld()->DestroyActor(m_Finish);
+	}
+	m_Finish = nullptr;
+}
+
+//========================================================================
 void AHexEditorActor::GameCycleModel()
 {
 	if (m_CurrentBridge)
@@ -1047,6 +1057,7 @@ void AHexEditorActor::ClearAll()
 	DeleteAllBlockers();
 	DeleteAllTurrets();
 	DeleteAllTeleports();
+	DeleteFinish();
 
 	auto* element = m_Grid.GetElement({ 0,0,0 });
 	check(element);
