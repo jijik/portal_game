@@ -16,9 +16,11 @@
 #include "ExpandArrowComponent.h"
 #include "Engine/StaticMeshActor.h"
 
+#include <istream>
 #include <ostream>
 #include <fstream>
 #include <sstream>
+#include <ctime>
 
 //========================================================================
 AHexEditorActor::AHexEditorActor()
@@ -1054,6 +1056,19 @@ void AHexEditorActor::ClearAll()
 //========================================================================
 void AHexEditorActor::SaveMap(const FString& name)
 {
+	if (FPaths::FileExists(name))
+	{
+		//if file exists copy it to backup file to prevent overriding some maps
+		auto newName = name;
+		std::stringstream ss;	auto t = std::time(nullptr); ss << t;
+		newName.Append(ss.str().c_str());
+		std::ifstream src(*name, std::ios::binary);
+		std::ofstream dst(*newName, std::ios::binary);
+		dst << src.rdbuf();
+		src.close();
+		dst.close();
+	}
+
 	std::ofstream file;
 	file.open(*name, std::ofstream::binary);
 	
