@@ -174,13 +174,13 @@ void C_PortalAI::Generate()
 		auto pair = b->GetNeighbors();
 
 		m_InitialState.m_Barriers.emplace_back();
-		m_InitialState.m_Barriers.back().on = true;
 		m_InitialState.m_Barriers.back().m_Neighbors.first.neighbor = pair.first.neighbor;
 		m_InitialState.m_Barriers.back().m_Neighbors.first.slotAtNeighbor = pair.first.slotAtNeighbor;
 		m_InitialState.m_Barriers.back().m_Neighbors.second.neighbor = pair.second.neighbor;
 		m_InitialState.m_Barriers.back().m_Neighbors.second.slotAtNeighbor = pair.second.slotAtNeighbor;
 		m_InitialState.m_Barriers.back().m_Id = b->GetId();
-		m_InitialState.m_Barriers.back().enable(false, m_InitialState.m_Graph);
+		m_InitialState.m_Barriers.back().walkEnabledRefCount = 1; //to be lowered in next command
+		m_InitialState.m_Barriers.back().enableWalk(false, m_InitialState.m_Graph);
 	}
 	
 	if (!gHexEditor->m_Finish)
@@ -305,7 +305,7 @@ void C_PortalAI::Solve()
 		{
 			for (auto* platform : platformElements)
 			{
-				if (cube->m_PlacedOn == nullptr && platform->m_On == false) //free cube and platform
+				if (/*cube->m_PlacedOn == nullptr && */platform->m_On == false) //free cube and platform
 				{
 					check(visited.size() < 10000);
 					visited.push_back(state);
@@ -318,8 +318,25 @@ void C_PortalAI::Solve()
 					std::stringstream ss;
 					ss << "Place cube from " << c->m_CurrentIndex << " to platform at " << p->m_CurrentIndex;
 
-					c->PickUp(newState.m_Graph);
+					bool wasPlacedOnSomething;
+					c->PickUp(newState.m_Graph, wasPlacedOnSomething);
+					newState.m_ActorPos = c->m_CurrentIndex;
+
+					//is it still reachable? barrier could closed due to pickup
+					//if (wasPlacedOnSomething)
+					{
+						using AStarRechable = C_GraphSearchAStar<T_Graph, Heuristic_Euclid>;
+						std::function<bool(AStarRechable::edge_const_t&)> traversePred = [](AStarRechable::edge_const_t& edge) { return edge->m_Enabled; };
+						AStarRechable search(newState.m_Graph, newState.m_ActorPos, p->m_CurrentIndex, false, traversePred);
+						if (!search.IsPathExists())
+						{
+							visited.pop_back();
+							continue;
+						}
+					}
+
 					c->Place(newState.m_Graph, *p);
+					newState.m_ActorPos = p->m_CurrentIndex;
 
 					newState.previousStateId = currId;
 
@@ -348,14 +365,33 @@ void C_AIPlatform::activate(bool b, T_Graph& graph)
 	m_On = b;
 	if (m_Target)
 	{
-		m_Target->enable(b, graph);
+		m_Target->enableWalk(b, graph);
 	}
 }
 
 //========================================================================
-void C_AIBarrier::enable(bool b, T_Graph& graph)
+void C_AIBarrier::enableWalk(bool b, T_Graph& graph)
 {
-	if (b == on) return;
+	if (b && walkEnabledRefCount > 0)
+	{
+		++walkEnabledRefCount;
+		return;
+	}
+
+	if (!b && walkEnabledRefCount > 1)
+	{
+		--walkEnabledRefCount;
+		return;
+	}
+
+	if (!b && walkEnabledRefCount == 0)
+	{
+		check(false); //somebody enable enabled barrier
+		return;
+	}
+
+	if (b) ++walkEnabledRefCount;
+	if (!b) --walkEnabledRefCount;
 
 	if (m_Neighbors.first.neighbor->GraphIndex != INVALID_INDEX &&
 		m_Neighbors.second.neighbor &&
@@ -364,6 +400,4 @@ void C_AIBarrier::enable(bool b, T_Graph& graph)
 		graph.GetEdge(m_Neighbors.first.neighbor->GraphIndex, m_Neighbors.second.neighbor->GraphIndex)->m_Enabled = b;
 		graph.GetEdge(m_Neighbors.second.neighbor->GraphIndex, m_Neighbors.first.neighbor->GraphIndex)->m_Enabled = b;
 	}
-
-	on = b;
 }

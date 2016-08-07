@@ -12,6 +12,14 @@
 using T_Graph = C_Graph<C_GraphNode*, C_GraphEdge*>;
 
 //========================================================================
+template <typename T>
+bool elementEquals(T* t1, T* t2)
+{
+	if (t1 == nullptr && t2 == nullptr) return true;
+	if (t1 == nullptr || t2 == nullptr) return false;
+	return *t1 == *t2;
+}
+
 struct C_AIElement 
 {
 	virtual ~C_AIElement() = default;
@@ -50,13 +58,13 @@ struct C_AIBarrier : public C_AIElement
 		bool operator==(const S_NeighborInfo& rhs) const { return neighbor == rhs.neighbor && slotAtNeighbor == rhs.slotAtNeighbor; }
 	};
 	std::pair<S_NeighborInfo, S_NeighborInfo> m_Neighbors; //first is always valid
-	bool on = true;
+	int walkEnabledRefCount = 0;
 	virtual type GetType() { return barrier; }
 	unsigned m_Id;
-	void enable(bool b, T_Graph& graph);
+	void enableWalk(bool b, T_Graph& graph);
 	bool operator==(const C_AIBarrier& rhs)
 	{
-		return C_AIElement::operator==(rhs) && m_Neighbors == rhs.m_Neighbors && on == rhs.on && m_Id == rhs.m_Id;
+		return C_AIElement::operator==(rhs) && m_Neighbors == rhs.m_Neighbors && walkEnabledRefCount == rhs.walkEnabledRefCount && m_Id == rhs.m_Id;
 	}
 	bool operator!=(const C_AIBarrier& rhs) { return !operator==(rhs); }
 };
@@ -70,7 +78,7 @@ struct C_AIPlatform : public C_AIElement
 	void activate(bool b, T_Graph& graph);
 	bool operator==(const C_AIPlatform& rhs)
 	{
-		return C_AIElement::operator==(rhs) && m_Target == rhs.m_Target && m_On == rhs.m_On;
+		return C_AIElement::operator==(rhs) && elementEquals(m_Target, rhs.m_Target) && m_On == rhs.m_On;
 	}
 	bool operator!=(const C_AIPlatform& rhs) { return !operator==(rhs); }
 };
@@ -80,11 +88,12 @@ struct C_AICube : public C_AIElement
 {
 	virtual type GetType() { return cube; }
 	
-	void PickUp(T_Graph& graph)
+	void PickUp(T_Graph& graph, bool& wasPlacedOnSomething)
 	{
 		check(m_CurrentIndex != INVALID_INDEX);
 		erase(graph.GetNode(m_CurrentIndex)->AIElements, this);
-		if (m_PlacedOn)
+		wasPlacedOnSomething = m_PlacedOn != nullptr;
+		if (wasPlacedOnSomething)
 		{
 			m_PlacedOn->activate(false, graph);
 		}
@@ -100,7 +109,7 @@ struct C_AICube : public C_AIElement
 
 	bool operator==(const C_AICube& rhs)
 	{
-		return C_AIElement::operator==(rhs) && m_PlacedOn == rhs.m_PlacedOn;
+		return C_AIElement::operator==(rhs) && elementEquals(m_PlacedOn, rhs.m_PlacedOn);
 	}
 	bool operator!=(const C_AICube& rhs) { return !operator==(rhs); }
 

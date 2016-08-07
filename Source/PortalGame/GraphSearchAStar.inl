@@ -102,7 +102,7 @@ FindPathResult C_GraphSearchAStar<graph_type, heuristic_type>::Search(int iterat
 			float GCost = m_GCosts[ncn] + pE->GetCost();
 
 			//if not in sf, add it
-			if (m_SearchFrontier[pE->To()] == 0)
+			if (m_SearchFrontier[pE->To()] == 0 && pE->To() != m_startNode)
 			{
 				m_FCosts[pE->To()] = GCost + HCost;
 				m_GCosts[pE->To()] = GCost;

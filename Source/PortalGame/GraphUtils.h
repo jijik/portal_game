@@ -43,7 +43,7 @@ public:
 	template <class graph_type>
 	static float Calculate(const graph_type& g, T_GraphIndex nd1, T_GraphIndex nd2)
 	{
-		return (ensure_ref(g.GetNode(nd1)).position - ensure_ref(g.GetNode(nd2)).position).GetLength();
+		return FVector::Dist(ensure_ref(g.GetNode(nd1)).Position, ensure_ref(g.GetNode(nd2)).Position);
 	}
 };
 
