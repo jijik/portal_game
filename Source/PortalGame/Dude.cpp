@@ -27,9 +27,12 @@ void ADude::Tick( float DeltaTime )
 
 	if (!m_ActionQueue.empty())
 	{
-		if (!m_ActionQueue.front()->Update())
+		auto* currentAction = m_ActionQueue.front();
+		if (!currentAction->Update())
 		{
-			delete m_ActionQueue.front();
+			currentAction->End();
+			delete currentAction;
+
 			m_ActionQueue.pop();
 			if (!m_ActionQueue.empty())
 			{
@@ -91,6 +94,20 @@ void ADude::PushAction(C_DudeAction& action)
 {
 	m_ActionQueue.push(&action);
 	if (m_ActionQueue.size() == 1)
+	{
+		m_ActionQueue.front()->Start();
+	}
+}
+
+//========================================================================
+void ADude::PushActions(std::initializer_list<C_DudeAction*> actions)
+{
+	for (auto& action : actions)
+	{
+		m_ActionQueue.push(action);
+	}
+
+	if (m_ActionQueue.size() == actions.size())
 	{
 		m_ActionQueue.front()->Start();
 	}

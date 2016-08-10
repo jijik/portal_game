@@ -17,9 +17,17 @@ C_DudeAction::C_DudeAction(ADude& dude)
 void C_DudeMoveTo::Start()
 {
 	AAIController* controller = CastChecked<AAIController>(m_Dude.GetController());
-	controller->MoveToLocation(target);
+	auto ret = controller->MoveToLocation(target, -1.f, true, true, false, true, 0, false); //do not allow partial paths!
+	if (ret == EPathFollowingRequestResult::Failed)
+	{
+		m_Dude.ClearActionQueue();
+		cbHandle.Reset();
+	}
+	else
+	{
+		cbHandle = controller->GetPathFollowingComponent()->OnMoveFinished.AddRaw(this, &C_DudeMoveTo::OnMoveCompleted);
+	}
 
-	controller->GetPathFollowingComponent()->OnMoveFinished.AddRaw(this, &C_DudeMoveTo::OnMoveCompleted);
 }
 
 void C_DudeMoveTo::OnMoveCompleted(FAIRequestID, EPathFollowingResult::Type Result)
@@ -36,6 +44,17 @@ bool C_DudeMoveTo::Update()
 	AAIController* controller = CastChecked<AAIController>(m_Dude.GetController());
 	auto status = controller->GetMoveStatus();
 	return status != EPathFollowingStatus::Idle;
+}
+
+void C_DudeMoveTo::End()
+{
+	if (cbHandle.IsValid())
+	{
+		AAIController* controller = CastChecked<AAIController>(m_Dude.GetController());
+		controller->GetPathFollowingComponent()->OnMoveFinished.Remove(cbHandle);
+		cbHandle.Reset();
+	}
+
 }
 
 //========================================================================

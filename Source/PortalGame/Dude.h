@@ -26,6 +26,7 @@ public:
 	void					Drop();
 
 	void					PushAction(C_DudeAction& action); //takes ownership
+	void					PushActions(std::initializer_list<C_DudeAction*> actions); //takes ownership
 	void					ClearActionQueue();
 
 private:

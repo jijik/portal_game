@@ -43,8 +43,7 @@ void ACompanionActor::OnClick()
 	auto* pickupAction = new C_DudePick(dude);
 	pickupAction->compation = this;
 
-	dude.PushAction(*gotoAction);
-	dude.PushAction(*pickupAction);
+	dude.PushActions({ gotoAction, pickupAction });
 }
 
 //========================================================================
