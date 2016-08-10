@@ -28,7 +28,7 @@ void ADude::Tick( float DeltaTime )
 	if (!m_ActionQueue.empty())
 	{
 		auto* currentAction = m_ActionQueue.front();
-		if (!currentAction->Update())
+		if (!currentAction->Update(DeltaTime))
 		{
 			currentAction->End();
 			delete currentAction;

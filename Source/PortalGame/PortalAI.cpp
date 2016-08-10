@@ -316,9 +316,11 @@ void C_PortalAI::Solve()
 				auto* dropAction = new C_DudeDrop(dude);
 				dude.PushAction(*gotoAction1, false);
 				dude.PushAction(*pickupAction, false);
+				dude.PushAction(*new C_DudeWait(dude, 1.0f), false);
 				dude.PushAction(*gotoAction2, false);
 				dude.PushAction(*dropAction, false);
 			}
+			dude.PushAction(*new C_DudeWait(dude, 1.0f), false);
 			auto* gotoFinish = new C_DudeMoveTo(dude);
 			gotoFinish->target = m_InitialState.m_Finish->m_RealFinish->GetActorLocation();
 			dude.PushAction(*gotoFinish, false);

@@ -11,8 +11,8 @@ class C_DudeAction
 public:
 	C_DudeAction(ADude& dude);
 
-	virtual void	Start() = 0;
-	virtual bool	Update() { return false; } //return true if want more update
+	virtual void	Start() { };
+	virtual bool	Update(float DeltaTime) { return false; } //return true if want more update
 	virtual void	End() { }
 	virtual void	Cancel() { }
 
@@ -27,7 +27,7 @@ public:
 	using C_DudeAction::C_DudeAction;
 
 	virtual void	Start() override;
-	virtual bool	Update() override;
+	virtual bool	Update(float DeltaTime) override;
 	virtual void	End() override;
 	virtual void	Cancel() override;
 
@@ -55,4 +55,17 @@ public:
 	using C_DudeAction::C_DudeAction;
 
 	virtual void Start() override;
+};
+
+
+//========================================================================
+class C_DudeWait : public C_DudeAction
+{
+public:
+	C_DudeWait(ADude& dude, float howMuch);
+
+	virtual bool	Update(float DeltaTime) override;
+
+private:
+	float m_Counter;
 };

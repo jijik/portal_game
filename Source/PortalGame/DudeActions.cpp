@@ -39,7 +39,7 @@ void C_DudeMoveTo::OnMoveCompleted(FAIRequestID, EPathFollowingResult::Type Resu
 	}
 }
 
-bool C_DudeMoveTo::Update()
+bool C_DudeMoveTo::Update(float)
 {
 	AAIController* controller = CastChecked<AAIController>(m_Dude.GetController());
 	auto status = controller->GetMoveStatus();
@@ -92,4 +92,18 @@ void C_DudeDrop::Start()
 	companion->SetActorLocation(m_Dude.GetActorLocation());
 	companion->OnDrop();
 	m_Dude.SetCompanion(nullptr);
+}
+
+//========================================================================
+C_DudeWait::C_DudeWait(ADude& dude, float howMuch)
+	: C_DudeAction(dude)
+	, m_Counter(howMuch)
+{
+
+}
+
+bool C_DudeWait::Update(float DeltaTime)
+{
+	m_Counter -= DeltaTime;
+	return m_Counter > 0.0f;
 }

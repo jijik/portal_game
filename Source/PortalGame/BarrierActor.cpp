@@ -76,6 +76,7 @@ void ABarrierActor::Tick( float DeltaTime )
 		if (NavSys)
 		{
 			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
+			NavSys->Build();
 		}
 		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
