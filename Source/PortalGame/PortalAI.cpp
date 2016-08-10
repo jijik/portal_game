@@ -9,6 +9,8 @@
 #include "HexGame.h"
 #include "GraphUtils.h"
 #include "GraphSearchAStar.h"
+#include "Dude.h"
+#include "DudeActions.h"
 
 #include <unordered_set>
 #include <string>
@@ -201,6 +203,7 @@ void C_PortalAI::Generate()
 	auto* node = GetGraphNode(gHexEditor->m_Finish);
 	node->AIElements.push_back(m_InitialState.m_Finish);
 	m_InitialState.m_Finish->m_CurrentIndex = node->GetIndex();
+	m_InitialState.m_Finish->m_RealFinish = gHexEditor->m_Finish;
 
 	m_InitialState.m_Platforms.reserve(gHexEditor->m_AllPlatforms.size());
 	for (auto* platform : gHexEditor->m_AllPlatforms)
@@ -215,6 +218,7 @@ void C_PortalAI::Generate()
 		auto* tile = GetGraphNode(platform);
 		tile->AIElements.push_back(&p);
 		p.m_CurrentIndex = tile->GetIndex();
+		p.m_RealPlatform = platform;
 	}
 
 	m_InitialState.m_Cubes.reserve(gHexEditor->m_AllCompanions.size());
@@ -225,6 +229,7 @@ void C_PortalAI::Generate()
 		auto* node = GetGraphNode(cube);
 		node->AIElements.push_back(&c);
 		c.m_CurrentIndex = node->GetIndex();
+		c.m_RealCube = cube;
 	}
 
 	m_InitialState.m_ActorPos = gHexEditor->GraphIndex;
@@ -280,7 +285,7 @@ void C_PortalAI::Solve()
 	visited.push_back(m_InitialState);
 	m_InitialState.CloneTo(visited.back());
 
-	std::vector<std::string> actions;
+	std::vector<std::pair<ACompanionActor*, APlatformActor*>> actions;
 	actions.resize(10000);
 
 	while (currId < visited.size())
@@ -290,15 +295,34 @@ void C_PortalAI::Solve()
 		getElements(state);
 		if (finished)
 		{
-			std::stringstream ss;
+			std::vector<std::pair<ACompanionActor*, APlatformActor*>> finalActions;
 			unsigned stateId = currId;
 			while (stateId != 0)
 			{
-				ss << actions[stateId] << "\n";
+				finalActions.push_back(actions[stateId]);
 				stateId = visited[stateId].previousStateId;
 			}
-			auto result = ss.str();
-			finished = finished;
+			std::reverse(finalActions.begin(), finalActions.end());
+			auto& dude = *gHexGame->Dude;
+			dude.ClearActionQueue();
+			for (auto a : finalActions)
+			{
+				auto* gotoAction1 = new C_DudeMoveTo(dude);
+				gotoAction1->target = a.first->GetActorLocation();
+				auto* pickupAction = new C_DudePick(dude);
+				pickupAction->companion = a.first;
+				auto* gotoAction2 = new C_DudeMoveTo(dude);
+				gotoAction2->target = a.second->GetActorLocation();
+				auto* dropAction = new C_DudeDrop(dude);
+				dude.PushAction(*gotoAction1, false);
+				dude.PushAction(*pickupAction, false);
+				dude.PushAction(*gotoAction2, false);
+				dude.PushAction(*dropAction, false);
+			}
+			auto* gotoFinish = new C_DudeMoveTo(dude);
+			gotoFinish->target = m_InitialState.m_Finish->m_RealFinish->GetActorLocation();
+			dude.PushAction(*gotoFinish, false);
+			dude.StartActions();
 			break;
 		}
 
@@ -316,8 +340,8 @@ void C_PortalAI::Solve()
 					auto* p = state.Get<C_AIPlatform*>(platform);
 					auto* c = state.Get<C_AICube*>(cube);
 
-					std::stringstream ss;
-					ss << "Place cube from " << c->m_CurrentIndex << " to platform at " << p->m_CurrentIndex;
+					auto* currentCompanionActor = c->m_RealCube;
+					auto* currentPlatform = p->m_RealPlatform;
 
 					bool wasPlacedOnSomething;
 					c->PickUp(newState.m_Graph, wasPlacedOnSomething);
@@ -348,7 +372,7 @@ void C_PortalAI::Solve()
 					}
 					else
 					{
-						actions[visited.size() - 1] = ss.str();
+						actions[visited.size() - 1] = { currentCompanionActor, currentPlatform };
 					}
 				}
 			}

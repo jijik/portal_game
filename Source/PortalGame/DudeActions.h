@@ -45,5 +45,14 @@ public:
 	using C_DudeAction::C_DudeAction;
 
 	virtual void Start() override;
-	ACompanionActor* compation = nullptr;
+	ACompanionActor* companion = nullptr;
+};
+
+//========================================================================
+class C_DudeDrop : public C_DudeAction
+{
+public:
+	using C_DudeAction::C_DudeAction;
+
+	virtual void Start() override;
 };

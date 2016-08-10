@@ -66,5 +66,30 @@ void C_DudeMoveTo::Cancel()
 //========================================================================
 void C_DudePick::Start()
 {
-	m_Dude.Pick(compation);
+	if (m_Dude.GetCompanion())
+	{
+		return;
+	}
+
+	m_Dude.SetCompanion(companion);
+	companion->SetActorRelativeLocation(FVector(0, 0, 100));
+	companion->SetActorRelativeScale3D(FVector(1, 1, 1));
+	companion->SetActorRelativeRotation(FRotator(0, 0, 0));
+	companion->AttachRootComponentToActor(&m_Dude);
+	companion->OnPick();
+}
+
+//========================================================================
+void C_DudeDrop::Start()
+{
+	auto companion = m_Dude.GetCompanion();
+	if (!companion)
+	{
+		return;
+	}
+
+	companion->DetachRootComponentFromParent(false);
+	companion->SetActorLocation(m_Dude.GetActorLocation());
+	companion->OnDrop();
+	m_Dude.SetCompanion(nullptr);
 }

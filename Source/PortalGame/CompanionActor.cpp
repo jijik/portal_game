@@ -35,7 +35,7 @@ void ACompanionActor::OnClick()
 	gotoAction->target = GetActorLocation();
 
 	auto* pickupAction = new C_DudePick(dude);
-	pickupAction->compation = this;
+	pickupAction->companion = this;
 
 	dude.PushActions({ gotoAction, pickupAction });
 }

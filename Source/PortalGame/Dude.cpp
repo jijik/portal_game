@@ -43,12 +43,23 @@ void ADude::Tick( float DeltaTime )
 }
 
 //========================================================================
+ACompanionActor* ADude::GetCompanion()
+{
+	return m_Companion;
+}
+
+//========================================================================
+void ADude::SetCompanion(ACompanionActor* c)
+{
+	m_Companion = c;
+}
+
+//========================================================================
 void ADude::Move(const FVector& vec)
 {
-	ClearActionQueue();
 	auto* gotoAction = new C_DudeMoveTo(*this);
 	gotoAction->target = vec;
-	PushAction(*gotoAction);
+	SetAction(*gotoAction);
 }
 
 //========================================================================
@@ -61,38 +72,29 @@ void ADude::Stop()
 //========================================================================
 void ADude::Pick(ACompanionActor* companion)
 {
-	if (m_Companion != nullptr)
-	{
-		return;
-	}
-
-	m_Companion = companion;
- 	m_Companion->SetActorRelativeLocation(FVector(0, 0, 100));
- 	m_Companion->SetActorRelativeScale3D(FVector(1, 1, 1));
- 	m_Companion->SetActorRelativeRotation(FRotator(0, 0, 0));
-	m_Companion->AttachRootComponentToActor(this);
-	m_Companion->OnPick();
+	auto* action = new C_DudePick(*this);
+	action->companion = companion;
+	SetAction(*action);
 }
 
 //========================================================================
 void ADude::Drop()
 {
-	if (m_Companion == nullptr)
-	{
-		return;
-	}
-
-	m_Companion->DetachRootComponentFromParent(false);
-	m_Companion->SetActorLocation(GetActorLocation());
-	m_Companion->OnDrop();
-	m_Companion = nullptr;
+	SetAction(*new C_DudeDrop(*this));
 }
 
 //========================================================================
-void ADude::PushAction(C_DudeAction& action)
+void ADude::SetAction(C_DudeAction& action)
+{
+	ClearActionQueue();
+	PushAction(action);
+}
+
+//========================================================================
+void ADude::PushAction(C_DudeAction& action, bool start)
 {
 	m_ActionQueue.push(&action);
-	if (m_ActionQueue.size() == 1)
+	if (start && m_ActionQueue.size() == 1)
 	{
 		m_ActionQueue.front()->Start();
 	}
@@ -110,6 +112,13 @@ void ADude::PushActions(std::initializer_list<C_DudeAction*> actions)
 	{
 		m_ActionQueue.front()->Start();
 	}
+}
+
+//========================================================================
+void ADude::StartActions()
+{
+	check(!m_ActionQueue.empty());
+	m_ActionQueue.front()->Start();
 }
 
 //========================================================================

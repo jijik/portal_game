@@ -47,6 +47,7 @@ struct C_AIElement
 struct C_AIFinish : public C_AIElement
 {
 	virtual type GetType() { return finish; }
+	AFinishActor* m_RealFinish = nullptr;
 };
 
 //========================================================================
@@ -81,6 +82,7 @@ struct C_AIPlatform : public C_AIElement
 		return C_AIElement::operator==(rhs) && elementEquals(m_Target, rhs.m_Target) && m_On == rhs.m_On;
 	}
 	bool operator!=(const C_AIPlatform& rhs) { return !operator==(rhs); }
+	APlatformActor* m_RealPlatform = nullptr;
 };
 
 //========================================================================
@@ -114,6 +116,7 @@ struct C_AICube : public C_AIElement
 	bool operator!=(const C_AICube& rhs) { return !operator==(rhs); }
 
 	C_AIPlatform* m_PlacedOn = nullptr;
+	ACompanionActor* m_RealCube = nullptr;
 };
 
 //========================================================================
