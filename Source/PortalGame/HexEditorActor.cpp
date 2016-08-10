@@ -180,9 +180,9 @@ void AHexEditorActor::RegisterTeleportsBinding()
 //========================================================================
 void AHexEditorActor::RegisterGameBinding()
 {
-	InputComponent->BindAction("Move", IE_Released, gHexGame->Dude, &ADude::Move);
+	InputComponent->BindAction("Action1", IE_Pressed, this, &AHexEditorActor::Action1Click);
+	InputComponent->BindAction("Action2", IE_Pressed, this, &AHexEditorActor::Action2Click);
 	InputComponent->BindAction("InputMode", IE_Pressed, this, &AHexEditorActor::CycleInputMode);
-	InputComponent->BindAction("Action", IE_Pressed, this, &AHexEditorActor::ActionClick);
 	InputComponent->BindAction("CycleModel", IE_Pressed, this, &AHexEditorActor::GameCycleModel);
 }
 
@@ -664,7 +664,29 @@ void AHexEditorActor::ChangeInputMode(InputMode to, bool deselect)
 }
 
 //========================================================================
-void AHexEditorActor::ActionClick()
+void AHexEditorActor::Action1Click()
+{
+	Raycast<AActor>(this, [&](auto& resultActor, auto& traceResult)
+	{
+		auto* companion = Cast<ACompanionActor>(resultActor);
+		auto* teleport = Cast<ATeleportActor>(resultActor);
+		if (companion)
+		{
+			companion->OnClick();
+		}
+		else if (teleport)
+		{
+			teleport->Use(*gHexGame->Dude);
+		}
+		else
+		{
+			gHexGame->Dude->Move(traceResult.Location);
+		}
+	});
+}
+
+//========================================================================
+void AHexEditorActor::Action2Click()
 {
 	if (m_CurrentBlocker)
 	{
@@ -677,21 +699,6 @@ void AHexEditorActor::ActionClick()
 	}
 
 	gHexGame->Dude->Drop();
-
-	Raycast<AActor>(this, 
-		[&](auto& resultActor, auto& traceResult)
-		{
-			auto* companion = Cast<ACompanionActor>(resultActor);
-			if (companion)
-			{
-				companion->OnClick();
-			}
-			auto* teleport = Cast<ATeleportActor>(resultActor);
-			if (teleport)
-			{
-				teleport->Use(*gHexGame->Dude);
-			}
-		});
 }
 
 //========================================================================

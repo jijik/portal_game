@@ -30,12 +30,6 @@ void ACompanionActor::Init(const FVector& pos)
 //========================================================================
 void ACompanionActor::OnClick()
 {
-//	auto dudePos = gHexGame->Dude->GetActorLocation();
-//
-//	if (FVector::Dist(dudePos, GetActorLocation()) < 30)
-// 	{
-// 		gHexGame->Dude->Pick(this);
-// 	}
 	auto& dude = *gHexGame->Dude;
 	auto* gotoAction = new C_DudeMoveTo(dude);
 	gotoAction->target = GetActorLocation();

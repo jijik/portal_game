@@ -43,13 +43,12 @@ void ADude::Tick( float DeltaTime )
 }
 
 //========================================================================
-void ADude::Move()
+void ADude::Move(const FVector& vec)
 {
-	AAIController* controller = CastChecked<AAIController>(GetController());
-	Raycast<AActor>(this,	[&](auto& resultActor, auto& traceResult)
-	{
-		controller->MoveToLocation(traceResult.Location);
-	});
+	ClearActionQueue();
+	auto* gotoAction = new C_DudeMoveTo(*this);
+	gotoAction->target = vec;
+	PushAction(*gotoAction);
 }
 
 //========================================================================
@@ -116,6 +115,11 @@ void ADude::PushActions(std::initializer_list<C_DudeAction*> actions)
 //========================================================================
 void ADude::ClearActionQueue()
 {
+	if (!m_ActionQueue.empty())
+	{
+		m_ActionQueue.front()->Cancel();
+	}
+
 	while (!m_ActionQueue.empty())
 	{
 		delete m_ActionQueue.front();

@@ -54,6 +54,12 @@ void C_DudeMoveTo::End()
 		controller->GetPathFollowingComponent()->OnMoveFinished.Remove(cbHandle);
 		cbHandle.Reset();
 	}
+}
+
+void C_DudeMoveTo::Cancel()
+{
+	AAIController* controller = CastChecked<AAIController>(m_Dude.GetController());
+	controller->StopMovement();
 
 }
 

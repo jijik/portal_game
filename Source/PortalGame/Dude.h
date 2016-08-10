@@ -20,7 +20,7 @@ public:
 	virtual void	BeginPlay() override;
 	virtual void	Tick( float DeltaSeconds ) override;
 
-	void					Move();
+	void					Move(const FVector& vec);
 	void					Stop();
 	void					Pick(ACompanionActor* companion);
 	void					Drop();

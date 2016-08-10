@@ -122,7 +122,8 @@ private:
 	void					ShowExpansionArrows();
 	void					CycleInputMode();
 	void					ChangeInputMode(InputMode to, bool deselect = true);
-	void					ActionClick();
+	void					Action1Click();
+	void					Action2Click();
 
 	void					CreateBarrierForPlacing();
 	void					UpdateBarrierPlacing();

@@ -14,6 +14,7 @@ public:
 	virtual void	Start() = 0;
 	virtual bool	Update() { return false; } //return true if want more update
 	virtual void	End() { }
+	virtual void	Cancel() { }
 
 protected:
 	ADude& m_Dude;
@@ -28,6 +29,7 @@ public:
 	virtual void	Start() override;
 	virtual bool	Update() override;
 	virtual void	End() override;
+	virtual void	Cancel() override;
 
 	void OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result);
 
