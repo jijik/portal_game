@@ -3,6 +3,7 @@
 #include "PortalGame.h"
 #include "BarrierActor.h"
 #include "HexEditorActor.h"
+#include "AI/Navigation/NavLinkProxy.h"
 
 //========================================================================
 unsigned ABarrierActor::IDProvider = 1;
@@ -72,12 +73,12 @@ void ABarrierActor::Tick( float DeltaTime )
 		{
 			GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
 		}
-		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
-		if (NavSys)
-		{
-			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
-			NavSys->Build();
-		}
+// 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+// 		if (NavSys)
+// 		{
+// 			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
+// 			NavSys->Build();
+// 		}
 		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	}
 
@@ -123,7 +124,13 @@ void ABarrierActor::Place(AHexTileActor& front, HexDir frontSlot, AHexTileActor*
 	m_Neighbors.first = { &front , frontSlot };
 	m_Neighbors.second = { back, backSlot };
 
-	GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	auto* meshComp = GetStaticMeshComponent();
+	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	auto* link = GetWorld()->SpawnActor<ANavLinkProxy>();
+	link->SetActorRotation(GetActorRotation());
+	link->SetActorLocation(GetActorLocation());
+	link->AttachRootComponentToActor(this);
 }
 
 //========================================================================

@@ -795,6 +795,7 @@ void AHexEditorActor::PlaceBarrier(bool createAnother)
 	}
 
 	print("Barrier placed...");
+
 }
 
 //========================================================================
@@ -1254,6 +1255,7 @@ void AHexEditorActor::LoadMap(const FString& name)
 	UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
 	if (NavSys)
 	{
+		NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
 		NavSys->Build();
 	}
 
