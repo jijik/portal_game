@@ -307,6 +307,7 @@ void C_PortalAI::Solve()
 			dude.ClearActionQueue();
 			for (auto a : finalActions)
 			{
+				dude.PushAction(*new C_DudeWait(dude, 0.1f), false);
 				auto* gotoAction1 = new C_DudeMoveTo(dude);
 				gotoAction1->target = a.first->GetActorLocation();
 				auto* pickupAction = new C_DudePick(dude);
@@ -320,7 +321,7 @@ void C_PortalAI::Solve()
 				dude.PushAction(*gotoAction2, false);
 				dude.PushAction(*dropAction, false);
 			}
-			dude.PushAction(*new C_DudeWait(dude, 1.0f), false);
+			dude.PushAction(*new C_DudeWait(dude, 0.1f), false);
 			auto* gotoFinish = new C_DudeMoveTo(dude);
 			gotoFinish->target = m_InitialState.m_Finish->m_RealFinish->GetActorLocation();
 			dude.PushAction(*gotoFinish, false);

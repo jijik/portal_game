@@ -1252,16 +1252,13 @@ void AHexEditorActor::LoadMap(const FString& name)
 
 	file.close();
 
+	m_PortalAI->Generate();
+
 	UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
 	if (NavSys)
 	{
-		NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
 		NavSys->Build();
 	}
-
-	m_PortalAI->Generate();
 }
-
-//========================================================================
 
 //========================================================================

@@ -64,22 +64,21 @@ void ABarrierActor::Tick( float DeltaTime )
 	if ((m_CurrentState == 0 || m_CurrentState == 10) && m_On != m_OnImpl)
 	{
 		m_OnImpl = m_On;
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 		if (m_On)
 		{
 			GetStaticMeshComponent()->SetStaticMesh(gHexEditor->AvailableBarriers[m_CurrentModelId]);
+			m_OffMeshLink->SetSmartLinkEnabled(false);
 		}
 		else
 		{
 			GetStaticMeshComponent()->SetStaticMesh(m_EmptyBarrierMesh);
+			m_OffMeshLink->SetSmartLinkEnabled(true);
 		}
-// 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
-// 		if (NavSys)
-// 		{
-// 			NavSys->AddDirtyArea(GetComponentsBoundingBox(), ENavigationDirtyFlag::All | ENavigationDirtyFlag::NavigationBounds);
-// 			NavSys->Build();
-// 		}
-		GetStaticMeshComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+ 		UNavigationSystem* NavSys = UNavigationSystem::GetCurrent(GetWorld());
+ 		if (NavSys)
+ 		{
+ 			NavSys->Build();
+ 		}
 	}
 
 	m_On = true;
@@ -127,10 +126,10 @@ void ABarrierActor::Place(AHexTileActor& front, HexDir frontSlot, AHexTileActor*
 	auto* meshComp = GetStaticMeshComponent();
 	meshComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
-	auto* link = GetWorld()->SpawnActor<ANavLinkProxy>();
-	link->SetActorRotation(GetActorRotation());
-	link->SetActorLocation(GetActorLocation());
-	link->AttachRootComponentToActor(this);
+ 	m_OffMeshLink = GetWorld()->SpawnActor<ANavLinkProxy>();
+ 	m_OffMeshLink->AttachRootComponentToActor(this);
+ 	m_OffMeshLink->SetActorRotation(GetActorRotation());
+ 	m_OffMeshLink->SetActorLocation(GetActorLocation());
 }
 
 //========================================================================

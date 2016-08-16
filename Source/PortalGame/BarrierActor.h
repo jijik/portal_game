@@ -10,6 +10,7 @@
 #include "BarrierActor.generated.h"
 
 class AHexTileActor;
+class ANavLinkProxy;
 
 UCLASS()
 class PORTALGAME_API ABarrierActor : public AStaticMeshActor
@@ -58,6 +59,8 @@ private:
 	std::pair<S_NeighborInfo, S_NeighborInfo> m_Neighbors; //first is always valid
 	AHexTileActor*														m_OwningTileBeforePlace = nullptr;
 	HexDir																		m_OwningSectorBeforePlace = InvalidHexDir;
+
+	ANavLinkProxy*														m_OffMeshLink = nullptr;
 
 	UStaticMesh*															m_EmptyBarrierMesh;
 
